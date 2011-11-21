@@ -1,0 +1,165 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# wrapper/lsf
+#
+# wrapper for some LSF commands for machines without direct access to LSF
+#
+# calls itself on the 'MASTER' node
+#
+#------------------------------------------------------------------------------
+siteprofile=/apl/soft/cae/site_profile.ksh
+lsfprofile=/apl/soft/lsf/conf/profile.lsf
+suffix=cal0001    # value to add after 5-letter prefix
+
+#------------------------------------------------------------------------------
+
+# site-prefix
+prefix() {
+    prefix="$(/bin/hostname | cut -c 1-5)"
+
+    # legacy naming
+    case "$prefix" in
+    ( aug* | deal* )    # Augsburg
+        prefix="deaug"
+        ;;
+    ( star* )           # Bangalore
+        prefix="inban"
+        ;;
+    esac
+
+    echo "$prefix"
+}
+
+
+usage() {
+    exec 1>&2
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTION] [LSF_OPTIONS]
+options:
+  -man              display the appropriate man page
+  -help             print the usage
+
+* wrapper for LSF commands for machines without direct access to LSF
+  calls itself on the 'MASTER' node
+
+USAGE
+    exit 1
+}
+
+#------------------------------------------------------------------------------
+# direct access to help
+[ "$1" = "-help" ] && usage
+
+# Evaluate command-line parameters and use these to detect if we are already
+# on the backend
+__lsf_wrapper_nargs=$#
+while [ $# -gt 0 ]
+do
+    case "$1" in
+    PWD=*)
+        # PWD=value  -> change dir
+        pwd="${1#PWD=}"
+        cd $pwd > /dev/null 2>&1 || {
+            exec 1>&2
+            echo "Error: cannot change to directory"
+            echo "    $pwd"
+            exit 1
+        }
+        ;;
+    *=)
+        # name=       -> unset name
+        eval "unset ${1%=}"
+        ;;
+    *=*)
+        # name=value  -> export name=value
+        eval "export $1"
+        ;;
+    *)
+        break
+        ;;
+    esac
+    shift
+done
+
+if [ $__lsf_wrapper_nargs -eq $# ]
+then
+    # no enviroment settings passed through, thus on frontend
+    # get the MASTER and dispatch to itself
+    #
+    # get MASTER from the site_profile
+    # or guess MASTER as site-prefix (NNMMM) + suffix
+    # where NN = country and MMM = site (eg, deaug)
+    # and suffix is normally 'cal0001'
+    #
+    eval $(sed -ne '/^ *MASTER=/master=/p' $siteprofile 2>/dev/null)
+    [ -n "$master" ] || master="$(prefix)$suffix"
+
+    # ensure script path is fully resolved
+    fqScript="$(cd ${0%/*} && /bin/pwd || echo ${0%/*})/${0##*/}"
+
+    case "$1" in
+    -h)
+        # help:
+        # don't need to change directory
+        exec ssh $master $fqScript OLDPWD=$PWD $*
+        ;;
+    -man)
+        # man page:
+        # don't need to change directory, pipe output through pager
+        exec ssh $master $fqScript OLDPWD=$PWD $* | less -FRX
+        ;;
+    *)
+        exec ssh $master $fqScript PWD=$PWD $*
+        echo "Error: could not exec ssh $master" 1>&2
+        ;;
+    esac
+    exit 1
+else
+    #
+    # on backend, resolve LSF command from script name by removing .sh suffix
+    #
+    cmd="${0##*/}"
+    cmd="${cmd%.sh}"
+
+    # add lsf settings
+    if [ -r $lsfprofile ]
+    then
+        . $lsfprofile
+    else
+        echo "Warning: file not found" 1>&2
+        echo "    $lsfprofile" 1>&2
+        echo 1>&2
+    fi
+
+    if [ -r /data/caeapp/etc/profile.d/caeapp.sh ]
+    then  . /data/caeapp/etc/profile.d/caeapp.sh
+    fi
+
+    # the preExec/postExec expects SCRATCH_ROOT to be set beforehand
+    export SCRATCH_ROOT="/scratch"
+
+    case "$1" in
+    -man)
+        # man page:
+        exec man $cmd
+        echo "Error: could not exec man $cmd" 1>&2
+        ;;
+
+    -Lproject)
+        # handle license project specially
+        shift
+        exec $cmd -Lp "${GLADIATOR_SITE:?}" $@
+        ;;
+
+    *)
+        exec $cmd $@
+        echo "Error: could not exec $cmd $@" 1>&2
+        ;;
+    esac
+    exit 1
+fi
+
+
+#------------------------------------------------------------------ end-of-file
