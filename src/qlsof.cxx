@@ -1,23 +1,83 @@
-/******************************************************
+/*---------------------------------*- C++ -*---------------------------------*\
+                  ___                                _
+                 / __)                              (_)
+               _| |__ _____ _   _  ____ _____  ____ |_| _____
+              (_   __|____ | | | |/ ___) ___ |/ ___)| |(____ |
+                | |  / ___ | |_| | |   | ____( (___ | |/ ___ |
+                |_|  \_____|____/|_|   |_____)\____)|_|\_____|
 
-* LSBLIB -- Examples
-*
-* simple bjobs
-* Submit command as an lsbatch job with no options set
-* and retrieve the job info
-* It is similar to the "bjobs" command with no options.
+    Copyright (C) 2011-2011 Faurecia Emissions Control Technologies
+-------------------------------------------------------------------------------
+License
+    This file contains proprietary and confidential information and
+    is subject to a non-disclosure-agreement for use outside of FECT
 
-******************************************************/
+Description
+    --
+
+Author
+    --
+\*---------------------------------------------------------------------------*/
+
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
 
 #include <string>
 #include <iostream>
+#include <sstream>
 
 #include <lsf/lsbatch.h>
 
-/* #include "submit_cmd.h"*/
+inline std::string makeString(const char* str)
+{
+    return std::string(str ? str : "");
+}
+
+bool fixDirName(std::string& name)
+{
+    bool changed = false;
+    while (name.size() > 1 && name[name.size()-1] == '/')
+    {
+        name.resize(name.size()-1);
+        changed = true;
+    }
+
+    return changed;
+}
+
+bool fixFileName(std::string& name)
+{
+    if (name.size() > 2 && name[0] == '.' && name[1] == '/')
+    {
+        name.erase(0, 2);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+
+std::string& replaceAll
+(
+    std::string& context,
+    const std::string& from,
+    const std::string& to
+)
+{
+    std::string::size_type lookHere = 0;
+    std::string::size_type foundHere;
+
+    while ((foundHere = context.find(from, lookHere)) != std::string::npos)
+    {
+          context.replace(foundHere, from.size(), to);
+          lookHere = foundHere + to.size();
+    }
+    return context;
+}
+
 
 void usage()
 {
@@ -67,30 +127,136 @@ void usage()
 }
 
 
+/*---------------------------------------------------------------------------*\
+                    Class JobInfoEntry Declaration
+\*---------------------------------------------------------------------------*/
+
+class BlsofEntry
+{
+public:
+
+    // Static data members
+
+
+    // Public data
+    //
+
+        //- The job ID that the LSF system assigned to the job
+        //  split into job-id + task-id
+        int jobId;
+        int taskId;
+
+        //- The current working directory when the job was submitted.
+        std::string cwd;
+
+        //- The name of the user who submitted the job
+        std::string outfile;
+
+
+        std::string jobIdStr() const
+        {
+            std::ostringstream os;
+            os  << jobId;
+            if (taskId)
+            {
+                os  << "." << taskId;
+            }
+            return os.str();
+        }
+
+        std::string tokenI() const
+        {
+            if (taskId)
+            {
+                std::ostringstream os;
+                os  << taskId;
+                return os.str();
+            }
+            else
+            {
+                return "0";
+            }
+        }
+
+        std::string tokenJ() const
+        {
+            std::ostringstream os;
+            os  << jobId;
+            return os.str();
+        }
+
+    // Constructors
+
+        //- Construct from jobInfoEnt
+        BlsofEntry(const jobInfoEnt& job)
+        :
+            jobId(LSB_ARRAY_JOBID(job.jobId)),
+            taskId(LSB_ARRAY_IDX(job.jobId)),
+            cwd(makeString(job.cwd)),
+            outfile(makeString(job.submit.outFile))
+        {
+            fixDirName(cwd);
+            fixFileName(outfile);
+
+            // filename relative to cwd if possible
+            if
+            (
+                outfile.size() > cwd.size()+1
+             && outfile[cwd.size()] == '/'
+             && outfile.substr(0, cwd.size()) == cwd
+            )
+            {
+                outfile.erase(0, cwd.size()+1);
+            }
+
+            // replace %J with jobId and %I with taskId
+            replaceAll(outfile, "%J", this->tokenJ());
+            replaceAll(outfile, "%I", this->tokenI());
+        }
+
+
+    //- Destructor
+    ~BlsofEntry()
+    {}
+
+
+    // Member Functions
+
+        // Access
+
+        // Check
+
+        // Edit
+
+        // Write
+
+    // Member Operators
+
+
+    // Friend Functions
+
+    // Friend Operators
+
+    // IOstream Operators
+
+};
+
+
 int main(int argc, char **argv)
 {
-     usage();
+//    usage();
     int nJobs = 0;
     int errorCode = 0;
 
     struct submit req;            /* job specifications */
     memset(&req, 0, sizeof(req)); /* initializes req */
 
-    int  jobId;                /* job ID of submitted job */
-
     /* variables for simulating bjobs command */
 
-    int  options = CUR_JOB;    /* the status of the jobs
-                                whose info is returned */
-
+    int  options = CUR_JOB;  // the status of the jobs whose info is returned
     char *user = "all";         /* match jobs for all users */
-    char *outfile;
-    LS_LONG_INT id=2136;
 
-    int more;                   /* number of remaining jobs unread */
-
-    /* initialize LSBLIB  and  get the configuration environment */
-
+    // initialize LSBLIB  and  get the configuration environment
     if (lsb_init(argv[0]) < 0) {
         lsb_perror("simbjobs: lsb_init() failed");
         return 1;
@@ -100,12 +266,11 @@ int main(int argc, char **argv)
      * "./simbjobs COMMAND ARGUMENTS" */
 
     /* if (argc < 2) {
-        fprintf(stderr, "Usage: simbjobs command\n");
-        exit(-1);
-    } */
+     fprintf(stderr, "Usage: simbjobs command\n");
+     exit(-1);
+     } */
 
-    /* gets the total number of pending job. Exits if failure */
-
+    // gets the total number of pending job. Exits if failure/
     if (lsb_openjobinfo(0, NULL, user, NULL, NULL, options) < 0)
     {
         lsb_perror("lsb_openjobinfo");
@@ -120,41 +285,16 @@ int main(int argc, char **argv)
     {
         struct jobInfoEnt *job = lsb_readjobinfo(&nJobs);
 
-        if
-        (
-            !job
-         || !(job->cwd)
-         || !((job->submit).outFile)
-        )
+        if (job)
         {
-            /* break on errors */
-            errorCode = 1;
-            break;
+            BlsofEntry lsof(*job);
+
+            std::cout
+                << lsof.cwd
+                << " " << lsof.outfile
+                << " " << lsof.jobIdStr()
+                << "\n";
         }
-
-        printf("%s ", job->cwd);
-        {
-            char *p;
-            char *outFileRaw = (job->submit).outFile;
-
-            int nTokens = 0;
-            int nExtra = 0;
-            for (p = outFileRaw; *p; ++p)
-            {
-                switch (*p)
-                {
-                    case '%':
-                        {
-                            break;
-                        }
-                }
-            }
-
-            /* printf("%s ", outfile); */
-            printf("%s ", outFileRaw);
-
-        }
-        printf("%s\n", lsb_jobid2str(job->jobId));
     }
     while (nJobs);
 

@@ -18,15 +18,14 @@ Description
 Author
     --
 \*---------------------------------------------------------------------------*/
-#include <cstdlib>
-#include <cstdio>
-#include <cstring>
 
 #include <set>
 #include <string>
 #include <sstream>
 #include <iostream>
 
+#include <unistd.h>
+#include <pwd.h>
 #include <lsf/lsbatch.h>
 
 static void usage(const std::string& message = "")
@@ -61,74 +60,50 @@ static void usage(const std::string& message = "")
 }
 
 
-class jobIdentifier
+std::string Script;
+
+static void die(const std::string& message = "")
 {
-    int jobId_;
-    int taskId_;
-
-public:
-    jobIdentifier(const struct jobInfoEnt* jobInfo)
-    :
-        jobId_(LSB_ARRAY_JOBID(jobInfo->jobId)),
-        taskId_(LSB_ARRAY_IDX(jobInfo->jobId))
-    {}
-
-    jobIdentifier(const struct jobInfoEnt& jobInfo)
-    :
-        jobId_(LSB_ARRAY_JOBID(jobInfo.jobId)),
-        taskId_(LSB_ARRAY_IDX(jobInfo.jobId))
-    {}
-
-
-    inline bool hasTasks() const
+    if (!message.empty())
     {
-        return taskId_ > 0;
+        std::cerr << Script << ": " <<message << "\n";
+    }
+    std::cerr << "Try '" << Script << " -help' for more information.\n";
+
+    exit(1);
+}
+
+
+// misc utils
+inline std::string makeString(const char* str)
+{
+    return std::string(str ? str : "");
+}
+
+bool fixDirName(std::string& name)
+{
+    bool changed = false;
+    while (name.size() > 1 && name[name.size()-1] == '/')
+    {
+        name.resize(name.size()-1);
+        changed = true;
     }
 
+    return changed;
+}
 
-    inline int jobId() const
+bool fixFileName(std::string& name)
+{
+    if (name.size() > 2 && name[0] == '.' && name[1] == '/')
     {
-        return jobId_;
+        name.erase(0, 2);
+        return true;
     }
-
-    inline int taskId() const
+    else
     {
-        return taskId_;
+        return false;
     }
-
-    inline std::string toString() const
-    {
-        std::ostringstream os;
-        os  << jobId_;
-        if (taskId_)
-        {
-            os  << "." << taskId_;
-        }
-        return os.str();
-    }
-
-    inline std::string tokenI() const
-    {
-        if (taskId_)
-        {
-            std::ostringstream os;
-            os  << taskId_;
-            return os.str();
-        }
-        else
-        {
-            return "0";
-        }
-    }
-
-    inline std::string tokenJ() const
-    {
-        std::ostringstream os;
-        os  << jobId_;
-        return os.str();
-    }
-
-};
+}
 
 
 std::string& replaceAll
@@ -148,6 +123,102 @@ std::string& replaceAll
     }
     return context;
 }
+
+
+
+/*---------------------------------------------------------------------------*\
+                        Class JobIdentifier Declaration
+\*---------------------------------------------------------------------------*/
+
+class JobIdentifier
+{
+public:
+
+    // Public data
+
+        //- The job ID
+        int jobId;
+
+        //- The task ID. Is 0 for non-array job
+        int taskId;
+
+        //- The current working directory when the job was submitted
+        std::string cwd;
+
+        //- The output filename (absolute or relative to cwd)
+        std::string outfile;
+
+    // Constructors
+
+        //- Construct from jobInfoEnt
+        JobIdentifier(const struct jobInfoEnt& jobInfo)
+        :
+            jobId(LSB_ARRAY_JOBID(jobInfo.jobId)),
+            taskId(LSB_ARRAY_IDX(jobInfo.jobId)),
+            cwd(makeString(jobInfo.cwd)),
+            outfile(makeString(jobInfo.submit.outFile))
+        {
+            fixDirName(cwd);
+            fixFileName(outfile);
+
+            // filename relative to cwd whenever possible
+            if
+            (
+                outfile.size() > cwd.size()+1
+             && outfile[cwd.size()] == '/'
+             && outfile.substr(0, cwd.size()) == cwd
+            )
+            {
+                outfile.erase(0, cwd.size()+1);
+            }
+
+            // replace %J with jobId and %I with taskId
+            replaceAll(outfile, "%J", this->tokenJ());
+            replaceAll(outfile, "%I", this->tokenI());
+        }
+
+
+    // Member Functions
+
+        inline bool hasTasks() const
+        {
+            return taskId > 0;
+        }
+
+        inline std::string jobIdString() const
+        {
+            std::ostringstream os;
+            os  << jobId;
+            if (taskId)
+            {
+                os  << "." << taskId;
+            }
+            return os.str();
+        }
+
+        inline std::string tokenI() const
+        {
+            if (taskId)
+            {
+                std::ostringstream os;
+                os  << taskId;
+                return os.str();
+            }
+            else
+            {
+                return "0";
+            }
+        }
+
+        inline std::string tokenJ() const
+        {
+            std::ostringstream os;
+            os  << jobId;
+            return os.str();
+        }
+
+};
+
 
 
 template<class T>
@@ -172,29 +243,45 @@ void addToFilter(std::set<T>& filter, const std::string& s)
 //  ->
 
 
-std::set<std::string> getRusage(const std::string& s)
+std::set<std::string> getRusage(const std::string& resReq)
 {
     std::set<std::string> filter;
-    std::string::size_type pos = s.find("rusage[");
-    if (pos != std::string::npos)
+
+    const std::string begMark = "rusage[";
+    std::string::size_type beg = resReq.find(begMark);
+    if (beg != std::string::npos)
     {
-        std::string::size_type endpos = pos;
+        beg += begMark.size();
+        std::string::size_type end;
+        std::string::size_type equals;
 
-        while ((pos = s.find_first_of(",[", endpos)) != std::string::npos)
+        while
+        (
+            (end = resReq.find_first_of(",:]", beg)) != std::string::npos
+         && (equals = resReq.find('=', beg)) != std::string::npos
+         && (equals < end)
+        )
         {
-            ++pos;
-            endpos = s.find_first_of(",:=]", pos);
-
-            if (endpos == std::string::npos)
-            {
-                break;
-            }
-
-            std::string item(s.substr(pos, endpos-pos));
+            std::string item(resReq.substr(beg, equals-beg));
             if (!item.empty())
             {
                 filter.insert(item);
             }
+
+            ++equals;
+
+            if (resReq[end] == ':')
+            {
+                end = resReq.find_first_of(",]", end);
+            }
+
+            if (end == std::string::npos || resReq[end] == ']')
+            {
+                break;
+            }
+
+
+            beg = end + 1;
         }
     }
 
@@ -204,8 +291,14 @@ std::set<std::string> getRusage(const std::string& s)
 
 int main(int argc, char **argv)
 {
-    // usage();
-    int errorCode = 0;
+    Script = argv[0];
+    {
+        std::string::size_type slash = Script.find_last_of('/');
+        if (slash != std::string::npos)
+        {
+            Script.erase(0, slash+1);
+        }
+    }
 
     // variables for simulating bjobs command
     int options = CUR_JOB; // | JGRP_ARRAY_INFO;
@@ -236,7 +329,7 @@ int main(int argc, char **argv)
                 ++argI;
                 if (argI >= argc)
                 {
-                    usage("missing arg for " + arg);
+                    die("missing arg for " + arg);
                     return 1;
                 }
                 addToFilter(jobFilter, argv[argI]);
@@ -246,7 +339,7 @@ int main(int argc, char **argv)
                 ++argI;
                 if (argI >= argc)
                 {
-                    usage("missing arg for " + arg);
+                    die("missing arg for " + arg);
                     return 1;
                 }
                 addToFilter(rusageFilter, argv[argI]);
@@ -256,7 +349,7 @@ int main(int argc, char **argv)
                 ++argI;
                 if (argI >= argc)
                 {
-                    usage("missing arg for " + arg);
+                    die("missing arg for " + arg);
                     return 1;
                 }
                 addToFilter(userFilter, argv[argI]);
@@ -271,7 +364,7 @@ int main(int argc, char **argv)
             }
             else
             {
-                usage("unknown option: " + arg);
+                die("unknown option: " + arg);
                 return 1;
             }
         }
@@ -293,14 +386,40 @@ int main(int argc, char **argv)
         }
         else
         {
-            usage("unknown argument: " + arg);
+            die("unknown argument: " + arg);
             return 1;
+        }
+    }
+
+    // sort out filters a bit
+    if (!jobFilter.empty())
+    {
+        // sort by job only - for all users
+        userFilter.clear();
+    }
+    else
+    {
+        if (userFilter.erase("*") || userFilter.erase("all"))
+        {
+            // any/all users - don't need a filter
+            userFilter.clear();
+        }
+        else if (userFilter.empty())
+        {
+            // no user specified - restrict to current user
+            struct passwd* pw = ::getpwuid(::getuid());
+
+            if (pw != NULL)
+            {
+                addToFilter(userFilter, pw->pw_name);
+            }
         }
     }
 
 
     // initialize LSBLIB and get the configuration environment
-    if (lsb_init(argv[0]) < 0) {
+    if (lsb_init(argv[0]) < 0)
+    {
         lsb_perror(NULL);
         return 1;
     }
@@ -309,29 +428,11 @@ int main(int argc, char **argv)
     // gets the total number of pending job. Exits if failure
     int nJobs = 0;
 
-    if (!jobFilter.empty())
-    {
-        userFilter.clear();
-        nJobs = lsb_openjobinfo(0, NULL, "all", NULL, NULL, options);
-    }
-    else if (userFilter.empty())
-    {
-        // current user
-        nJobs = lsb_openjobinfo(0, NULL, NULL, NULL, NULL, options);
-    }
-    else
-    {
-        // any/all users
-        if (userFilter.erase("*") || userFilter.erase("all"))
-        {
-            userFilter.clear();
-        }
-        nJobs = lsb_openjobinfo(0, NULL, "all", NULL, NULL, options);
-    }
+    nJobs = lsb_openjobinfo(0, NULL, "all", NULL, NULL, options);
 
     if (nJobs < 0)
     {
-        lsb_perror("lsb_openjobinfo");
+        std::cerr << "Error initializing lsb_openjobinfo\n";
         return 1;
     }
 
@@ -339,21 +440,14 @@ int main(int argc, char **argv)
     {
         const struct jobInfoEnt *job = lsb_readjobinfo(&nJobs);
 
-        if
-        (
-            !job
-         || !(job->cwd)
-         || !((job->submit).outFile)
-        )
+        if (!job)
         {
-            // break on errors
-            errorCode = 1;
-            break;
+            continue;
         }
 
         const struct submit& sub = job->submit;
 
-        jobIdentifier jobIdent(job);
+        JobIdentifier jobIdent(*job);
 
         // filter based on owner criterion
         if
@@ -403,19 +497,16 @@ int main(int argc, char **argv)
             }
         }
 
-        std::string outFile((job->submit).outFile);
-        replaceAll(outFile, "%J", jobIdent.tokenJ());
-        replaceAll(outFile, "%I", jobIdent.tokenI());
-
-        std::cout << job->cwd << " "
-            << outFile << " "
-            << jobIdent.toString() << std::endl;
+        std::cout
+            << jobIdent.cwd
+            << " " << jobIdent.outfile
+            << " " << jobIdent.jobIdString() << "\n";
     }
 
-    /* close the connection */
+    // close the connection
     lsb_closejobinfo();
 
-    return errorCode;
+    return 0;
 }
 
 /* ************************************************************************* */
