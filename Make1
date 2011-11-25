@@ -1,0 +1,29 @@
+#!/bin/sh
+
+. /apl/soft/lsf/conf/profile.lsf
+
+LSF_INCDIR=/apl/soft/lsf/7.0/include
+
+set -x
+
+g++ \
+  -Isrc \
+  src/qlsof.cxx \
+  -o qlsof -Wall \
+  -I$LSF_INCDIR \
+  $LSF_LIBDIR/libbat.a \
+  $LSF_LIBDIR/liblsf.a \
+  -g -lm -lnsl -ldl
+
+
+g++ \
+  -Isrc \
+  src/blsof.cxx \
+  src/Rusage.cxx \
+  src/JobIdentifier.cxx \
+  -o blsof -Wall \
+  -I$LSF_INCDIR \
+  $LSF_LIBDIR/libbat.a \
+  $LSF_LIBDIR/liblsf.a \
+  -g -lm -lnsl -ldl
+
