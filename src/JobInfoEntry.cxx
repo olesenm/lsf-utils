@@ -1,22 +1,25 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-                  ___                                _
-                 / __)                              (_)
-               _| |__ _____ _   _  ____ _____  ____ |_| _____
-              (_   __|____ | | | |/ ___) ___ |/ ___)| |(____ |
-                | |  / ___ | |_| | |   | ____( (___ | |/ ___ |
-                |_|  \_____|____/|_|   |_____)\____)|_|\_____|
+Copyright 2011-2011 Mark Olesen
 
-    Copyright (C) 2011-2011 Faurecia Emissions Control Technologies
--------------------------------------------------------------------------------
 License
-    This file contains proprietary and confidential information and
-    is subject to a non-disclosure-agreement for use outside of FECT
+    This file is part of lsf-utils
+
+    lsf-utils is free software: you can redistribute it and/or modify it under
+    the terms of the GNU Affero General Public License as published by the
+    Free Software Foundation, either version 3 of the License,
+    or (at your option) any later version.
+
+    lsf-utils is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+    or FITNESS FOR A PARTICULAR PURPOSE.
+    See the GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with lsf-utils. If not, see <http://www.gnu.org/licenses/>.
 
 Description
     --
 
-Author
-    --
 \*---------------------------------------------------------------------------*/
 
 #include "JobInfoEntry.hxx"
