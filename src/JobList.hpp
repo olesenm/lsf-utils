@@ -1,6 +1,6 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright 2011-2011 Mark Olesen
-
+Copyright (c) 2011-2011 Mark Olesen
+-------------------------------------------------------------------------------
 License
     This file is part of lsf-utils
 
@@ -22,63 +22,94 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef JobIdentifier_H
-#define JobIdentifier_H
+#ifndef JobList_H
+#define JobList_H
 
+#include <ctime>
 #include <string>
-#include <sstream>
+#include <vector>
+#include <iostream>
 
-#include <lsf/lsbatch.h>
+#include "JobInfoEntry.hpp"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace LsfUtil
 {
 
+// Forward declaration of friend functions and operators
+class JobList;
+
+
 /*---------------------------------------------------------------------------*\
-                        Class JobIdentifier Declaration
+                    Class JobList Declaration
 \*---------------------------------------------------------------------------*/
 
-class JobIdentifier
+class JobList
+:
+    private std::vector<LsfUtil::JobInfoEntry>
 {
+    // Private data
+
+        //- The last update time
+        time_t lastUpdate_;
+
+        //- The update interval
+        unsigned interval_;
+
+        //- Error
+        bool error_;
+
+        //- variables for simulating bjobs command
+        int options_;
+
 public:
 
-    // Public data
+    // Static data members
 
-        //- The job ID
-        int jobId;
-
-        //- The task ID. Is 0 for non-array job
-        int taskId;
-
-        //- The job owner
-        std::string user;
-
-        //- The current working directory when the job was submitted
-        std::string cwd;
-
-        //- The output filename (absolute or relative to cwd)
-        std::string outfile;
-
-        std::string jobIdString;
 
     // Constructors
 
-        //- Construct from jobInfoEnt
-        JobIdentifier(const struct jobInfoEnt&);
+        //- Construct
+        JobList(unsigned interval = 10, bool withPending = true);
+
+
+    //- Destructor
+    ~JobList();
 
 
     // Member Functions
 
-        inline bool hasTasks() const
+        // Access
+
+        bool hasError() const
         {
-            return taskId > 0;
+            return error_;
         }
 
-        std::string tokenJ() const;
+        using std::vector<LsfUtil::JobInfoEntry>::empty;
+        using std::vector<LsfUtil::JobInfoEntry>::size;
+        using std::vector<LsfUtil::JobInfoEntry>::operator[];
+
+        // Check
+
+        // Edit
+        bool update();
+
+        // Write
+
+        std::ostream& printXML(std::ostream&) const;
+
+
+    // Member Operators
+
+    // Friend Functions
+
+    // Friend Operators
+
+    // IOstream Operators
 
 };
-
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -87,6 +118,9 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+// #include "JobListI.hpp"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #endif
 

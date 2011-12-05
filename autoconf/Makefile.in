@@ -1,0 +1,69 @@
+# -*- sh -*-
+
+# This is a UNIX-only makefile for autoconf
+
+# If you want to change these variables, re-run the configure script.
+INSTALL= @INSTALL@
+INSTALL_DATA = @INSTALL_DATA@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+libdir = @libdir@
+pkgconfigdir = @pkgconfigdir@
+
+#---------------------------------------------------------------------------
+# DESTDIR is designed to facilitate making packages.  Normally it is empty
+#---------------------------------------------------------------------------
+#DESTDIR =
+DEST_PKGCONFIGDIR = $(DESTDIR)$(pkgconfigdir)
+
+all: makefiles
+	cd src && $(MAKE) all
+
+Makefile: configure autoconf/Makefile.in autoconf/check_lsf.m4
+	@echo "Makefile is older than the configure script".
+	@echo "Please re-run the configure script."
+	@exit 1
+
+src/Makefile: configure src/Makefile.in autoconf/check_lsf.m4 src/config.h.in
+	@echo "src/Makefile is older than its dependencies".
+	@echo "Please re-run the configure script."
+	@exit 1
+
+makefiles: Makefile src/Makefile
+
+doc:
+	@echo "create doxygen documentation"
+	@echo
+	doxygen
+
+clean:
+	/bin/rm -f *~
+	cd src && $(MAKE) clean
+
+docclean:
+	@echo "remove doxygen documentation"
+	@echo
+	/bin/rm -rf html/*
+
+distclean: docclean
+	/bin/rm -f *~ Makefile config.status config.log config.cache
+	cd src && $(MAKE) distclean
+
+install: makefiles
+	cd src && $(MAKE) install
+
+
+configure: autoconf/configure.ac autoconf/check_lsf.m4
+	( cd autoconf && autoconf && mv ./configure ..; rm -rf autom4te.cache )
+
+update: autoconf/config.sub autoconf/config.guess
+
+autoconf/config.guess: /usr/share/misc/config.guess
+	/bin/cp -f /usr/share/misc/config.guess autoconf/config.guess
+
+autoconf/config.sub: /usr/share/misc/config.sub
+	/bin/cp -f /usr/share/misc/config.sub autoconf/config.sub
+
+.PHONY: all clean doc docclean distclean install makefiles man
+
+# -----------------------------------------------------------------------------

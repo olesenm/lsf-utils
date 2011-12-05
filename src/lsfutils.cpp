@@ -1,6 +1,6 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright 2011-2011 Mark Olesen
-
+Copyright (c) 2011-2011 Mark Olesen
+-------------------------------------------------------------------------------
 License
     This file is part of lsf-utils
 
@@ -32,11 +32,11 @@ Description
 #include <iostream>
 #include <ctime>
 
-#include "JobList.hxx"
-#include "JobInfoEntry.hxx"
+#include "JobList.hpp"
+#include "JobInfoEntry.hpp"
 #include <lsf/lsbatch.h>
 
-#include "OutputGE_02.hxx"
+#include "OutputGE_02.hpp"
 
 static void usage(const std::string& message = "")
 {

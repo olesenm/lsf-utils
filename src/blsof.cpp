@@ -1,6 +1,6 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright 2011-2011 Mark Olesen
-
+Copyright (c) 2011-2011 Mark Olesen
+-------------------------------------------------------------------------------
 License
     This file is part of lsf-utils
 
@@ -30,8 +30,8 @@ Description
 #include <pwd.h>
 #include <lsf/lsbatch.h>
 
-#include "JobIdentifier.hxx"
-#include "Rusage.hxx"
+#include "JobIdentifier.hpp"
+#include "Rusage.hpp"
 
 static void usage(const std::string& message = "")
 {

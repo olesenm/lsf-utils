@@ -1,6 +1,6 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright 2011-2011 Mark Olesen
-
+Copyright (c) 2011-2011 Mark Olesen
+-------------------------------------------------------------------------------
 License
     This file is part of lsf-utils
 
@@ -27,8 +27,8 @@ Description
 
 #include <iostream>
 
-#include "JobList.hxx"
-#include "JobInfoEntry.hxx"
+#include "JobList.hpp"
+#include "JobInfoEntry.hpp"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -53,7 +53,7 @@ namespace OutputGE_01
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// #include "JobListI.hxx"
+// #include "JobListI.hpp"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

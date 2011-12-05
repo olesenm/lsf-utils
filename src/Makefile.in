@@ -1,0 +1,155 @@
+# -*- sh -*-
+
+# C++ compiler and flags
+CPP = @CPP@
+CPPFLAGS = @CPPFLAGS@
+CXX = @CXX@
+CXXFLAGS = @CXXFLAGS@
+LDFLAGS = @LDFLAGS@
+
+#---------------------------------------------------------------------------
+# Installation information.
+#---------------------------------------------------------------------------
+bindir = @bindir@
+builddir = @builddir@
+datadir = @datadir@
+datarootdir = @datarootdir@
+docdir = @docdir@
+exec_prefix = @exec_prefix@
+htmldir = @htmldir@
+includedir = @includedir@
+mandir = @mandir@/man1
+prefix = @prefix@
+srcdir = @srcdir@
+
+INSTALL = @INSTALL@
+INSTALL_DATA = @INSTALL_DATA@
+
+# LSF_ENVDIR = @LSF_ENVDIR@
+LSF_INCLUDEDIR = @LSF_INCLUDEDIR@
+LSF_LIBDIR = @LSF_LIBDIR@
+
+INCLUDE += -I$(LSF_INCLUDEDIR)
+LD_LSF = -L$(LSF_LIBDIR) -lbat -llsf
+
+#---------------------------------------------------------------------------
+# DESTDIR is designed to facilitate making packages. Normally it is empty
+#---------------------------------------------------------------------------
+#DESTDIR =
+DEST_BINDIR = $(DESTDIR)$(bindir)
+DEST_DOCDIR = $(DESTDIR)$(docdir)
+DEST_MANDIR = $(DESTDIR)$(mandir)
+
+#---------------------------------------------------------------------------
+# Misc commands (safe to leave these untouched)
+#---------------------------------------------------------------------------
+RANLIB          = @RANLIB@
+INSTALL         = @INSTALL@
+INSTALL_DATA    = @INSTALL_DATA@
+RM              = rm -f
+RM_R            = rm -rf
+AR_CR           = ar cr
+RMDIR           = rmdir
+LN              = /bin/ln -sf
+CP              = cp
+MKDIR           = mkdir
+
+# -----------------------------------------------------------------------------
+# There should be no need to modify anything below here.
+# -----------------------------------------------------------------------------
+
+LIBNAME = lsfutils
+LIB = lib$(LIBNAME).a
+BINS = blsof lsfutils
+
+####### Files
+
+LIBHDRS = \
+    JobIdentifier.hpp \
+    JobInfoEntry.hpp \
+    JobList.hpp \
+    JobSubmitEntry.hpp \
+    OutputGE_01.hpp \
+    OutputGE_02.hpp \
+    Rusage.hpp \
+    XmlUtils.hpp
+
+LIBSRCS = \
+    JobIdentifier.cpp \
+    JobInfoEntry.cpp \
+    JobList.cpp \
+    JobSubmitEntry.cpp \
+    OutputGE_01.cpp \
+    OutputGE_02.cpp \
+    Rusage.cpp
+
+LIBOBJS = \
+    JobIdentifier.o \
+    JobInfoEntry.o \
+    JobList.o \
+    JobSubmitEntry.o \
+    OutputGE_01.o \
+    OutputGE_02.o \
+    Rusage.o
+
+
+LDFLAGS += -L$(srcdir) -l$(LIBNAME) -g -lm -lnsl -ldl
+
+first: all
+####### Implicit rules
+
+%.o : %.c
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) $(INCLUDE) $< -o $@
+
+%.o : %.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCLUDE) $< -o $@
+
+%.o : %.cc
+	$(CXX) -c $(CXXFLAGS) $(INCLUDE) $< -o $@
+
+%.o : %.cxx
+	$(CXX) -c $(CXXFLAGS) $(INCLUDE) $< -o $@
+
+%.o : %.C
+	$(CXX) -c $(CXXFLAGS) $(INCLUDE) $< -o $@
+
+.c.o:
+	$(CC) -c $(CFLAGS) $(INCLUDE) $< -o $@
+
+####### Build rules
+
+
+all: lib bin
+
+lib: $(LIB)
+bin: $(BINS) $(LIB)
+
+$(LIB): $(LIBOBJS)
+	$(AR_CR) $@ $?
+
+# -----------------------------------------------------------------------------
+####### Compile
+
+blsof: blsof.o $(LIBHDRS) $(LIB)
+	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ $< $(LDFLAGS) $(LD_LSF)
+
+lsfutils: lsfutils.o $(LIBHDRS) $(LIB)
+	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ $< $(LDFLAGS) $(LD_LSF)
+
+
+# -----------------------------------------------------------------------------
+# clean targets
+
+clean:
+	/bin/rm -f *~ \#* $(BINS) $(LIB) *.o
+
+distclean: clean
+	/bin/rm -rf Makefile sysconf.h config.h $(srcdir)/*.bak
+
+# -----------------------------------------------------------------------------
+# installation
+
+
+.PHONY: all bin lib clean distclean
+
+# -----------------------------------------------------------------------------

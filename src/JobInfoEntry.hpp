@@ -1,6 +1,6 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright 2011-2011 Mark Olesen
-
+Copyright (c) 2011-2011 Mark Olesen
+-------------------------------------------------------------------------------
 License
     This file is part of lsf-utils
 
@@ -29,7 +29,7 @@ Description
 #include <string>
 #include <vector>
 
-#include "JobSubmitEntry.hxx"
+#include "JobSubmitEntry.hpp"
 
 // Forward declaration of classes
 struct jobInfoEnt;
@@ -158,7 +158,7 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// #include "JobInfoEntryI.hxx"
+// #include "JobInfoEntryI.hpp"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

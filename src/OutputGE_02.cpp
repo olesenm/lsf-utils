@@ -1,6 +1,6 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright 2011-2011 Mark Olesen
-
+Copyright (c) 2011-2011 Mark Olesen
+-------------------------------------------------------------------------------
 License
     This file is part of lsf-utils
 
@@ -22,8 +22,8 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#include "OutputGE_02.hxx"
-#include "XmlUtils.hxx"
+#include "OutputGE_02.hpp"
+#include "XmlUtils.hpp"
 
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //

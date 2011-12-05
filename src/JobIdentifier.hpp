@@ -1,6 +1,6 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright 2011-2011 Mark Olesen
-
+Copyright (c) 2011-2011 Mark Olesen
+-------------------------------------------------------------------------------
 License
     This file is part of lsf-utils
 
@@ -22,40 +22,71 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef OutputGE_02_H
-#define OutputGE_02_H
+#ifndef JobIdentifier_H
+#define JobIdentifier_H
 
-#include <iostream>
+#include <string>
+#include <sstream>
 
-#include "JobList.hxx"
-#include "JobInfoEntry.hxx"
+#include <lsf/lsbatch.h>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace LsfUtil
 {
 
-namespace OutputGE_02
+/*---------------------------------------------------------------------------*\
+                        Class JobIdentifier Declaration
+\*---------------------------------------------------------------------------*/
+
+class JobIdentifier
 {
+public:
+
+    // Public data
+
+        //- The job ID
+        int jobId;
+
+        //- The task ID. Is 0 for non-array job
+        int taskId;
+
+        //- The job owner
+        std::string user;
+
+        //- The current working directory when the job was submitted
+        std::string cwd;
+
+        //- The output filename (absolute or relative to cwd)
+        std::string outfile;
+
+        std::string jobIdString;
+
+    // Constructors
+
+        //- Construct from jobInfoEnt
+        JobIdentifier(const struct jobInfoEnt&);
+
+
+    // Member Functions
+
+        inline bool hasTasks() const
+        {
+            return taskId > 0;
+        }
+
+        std::string tokenJ() const;
+
+};
+
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-    std::ostream& printXML(std::ostream&, const JobList&);
-    std::ostream& printXML(std::ostream&, const JobInfoEntry&);
-    std::ostream& printXML(std::ostream&, const JobSubmitEntry&);
-
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-} // End namespace OutputGE_02
 
 } // End namespace LsfUtil
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// #include "JobListI.hxx"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #endif
 
