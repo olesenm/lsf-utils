@@ -29,7 +29,13 @@ INSTALL_DATA = @INSTALL_DATA@
 LSF_INCLUDEDIR = @LSF_INCLUDEDIR@
 LSF_LIBDIR = @LSF_LIBDIR@
 
+INCLUDE += -I.
+
+ifdef LSF_INCLUDEDIR
+
 INCLUDE += -I$(LSF_INCLUDEDIR)
+
+endif
 LD_LSF = -L$(LSF_LIBDIR) -lbat -llsf
 
 #---------------------------------------------------------------------------
@@ -93,7 +99,21 @@ LIBOBJS = \
     Rusage.o
 
 
-LDFLAGS += -L$(srcdir) -l$(LIBNAME) -g -lm -lnsl -ldl
+LIB2SRCS = \
+    markutil/HttpCore.cpp \
+    markutil/HttpHeader.cpp \
+    markutil/HttpRequest.cpp \
+    markutil/HttpServer.cpp \
+    markutil/SocketServer.cpp
+
+LIB2OBJS = \
+    markutil/HttpCore.o \
+    markutil/HttpHeader.o \
+    markutil/HttpRequest.o \
+    markutil/HttpServer.o \
+    markutil/SocketServer.o
+
+LDFLAGS += -g -lm -lnsl -ldl
 
 first: all
 ####### Implicit rules
@@ -127,14 +147,24 @@ bin: $(BINS) $(LIB)
 $(LIB): $(LIBOBJS)
 	$(AR_CR) $@ $?
 
+libmarkutil.a: $(LIB2OBJS)
+	$(AR_CR) $@ $?
+
 # -----------------------------------------------------------------------------
 ####### Compile
 
 blsof: blsof.o $(LIBHDRS) $(LIB)
-	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ $< $(LDFLAGS) $(LD_LSF)
+	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ $< \
+    $(LDFLAGS) -L$(srcdir) -l$(LIBNAME) $(LD_LSF)
 
 lsfutils: lsfutils.o $(LIBHDRS) $(LIB)
-	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ $< $(LDFLAGS) $(LD_LSF)
+	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ $<  \
+    $(LDFLAGS) -L$(srcdir) -l$(LIBNAME) $(LD_LSF)
+
+
+sample-server: markutil/sample-server.cpp libmarkutil.a
+	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ $< \
+    $(LDFLAGS) -L$(srcdir)  -lmarkutil
 
 
 # -----------------------------------------------------------------------------
