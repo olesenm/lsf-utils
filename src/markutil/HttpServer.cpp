@@ -247,7 +247,7 @@ int markutil::HttpServer::reply(std::ostream& os, HttpHeader& head) const
      && req.type() != req.GET
     )
     {
-        head.status(head._405_METHOD_NOT_ALLOWED);
+        head(head._405_METHOD_NOT_ALLOWED);
         head("Allow", "GET,HEAD");
         head.print(os);
         head.html(os);
@@ -259,7 +259,7 @@ int markutil::HttpServer::reply(std::ostream& os, HttpHeader& head) const
 
     if (mimeType.empty())
     {
-        head.status(head._404_NOT_FOUND);
+        head(head._404_NOT_FOUND);
         head.print(os);
         head.html(os);
 
@@ -272,7 +272,7 @@ int markutil::HttpServer::reply(std::ostream& os, HttpHeader& head) const
     int fileFd = open(file.c_str(), O_RDONLY);
     if (fileFd == -1)
     {
-        head.status(head._404_NOT_FOUND);
+        head(head._404_NOT_FOUND);
         head.print(os);
         head.html(os);
 
@@ -280,10 +280,8 @@ int markutil::HttpServer::reply(std::ostream& os, HttpHeader& head) const
     }
 
 
-    head.status(head._200_OK);
     head.contentType(mimeType);
-
-    head.print(os);
+    os  << head(head._200_OK);
     if (req.type() == req.GET)
     {
         // send file in 8KB block - last block may be smaller

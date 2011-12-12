@@ -206,6 +206,18 @@ std::ostream& markutil::HttpHeader::print(std::ostream& os) const
 }
 
 
+// * * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * //
+
+markutil::HttpHeader& markutil::HttpHeader::operator()
+(
+    StatusCode code
+)
+{
+    status_ = code;
+    return *this;
+}
+
+
 // * * * * * * * * * * * * * * * Friend Operators  * * * * * * * * * * * * * //
 
 std::ostream& markutil::operator<<

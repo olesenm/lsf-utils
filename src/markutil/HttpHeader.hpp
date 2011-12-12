@@ -180,6 +180,9 @@ public:
         using HttpCore::operator();
         using HttpCore::operator[];
 
+        //! Alter the status code
+        HttpHeader& operator()(StatusCode);
+
 
     // IOstream Operators
 

@@ -72,7 +72,7 @@ public:
              && req.type() != req.GET
             )
             {
-                head.status(head._405_METHOD_NOT_ALLOWED);
+                head(head._405_METHOD_NOT_ALLOWED);
                 head("Allow", "GET,HEAD");
                 os  << head;
                 head.html(os);
@@ -92,13 +92,9 @@ public:
 
             if (url == "/server-info")
             {
-                head.status(head._200_OK);
-                head.print(os);
+                os  << head(head._200_OK);
 
-                if
-                (
-                    req.type() == req.GET
-                )
+                if (req.type() == req.GET)
                 {
                     os  << "<html><head>"
                         << "<title>server-info</title>"
