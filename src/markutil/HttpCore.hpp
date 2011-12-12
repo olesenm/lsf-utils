@@ -46,8 +46,6 @@ namespace markutil
 
 class HttpCore
 {
-protected:
-
    /**
     * case-insensitive compare, return value for "string1 < string2"
     * may not work for non-ASCII, but HTTP headers are ASCII anynow
@@ -69,13 +67,19 @@ protected:
     > StringMapNoCase;
 
 
+    // Private data
+
+        //! Request or Response headers
+        StringMapNoCase headers_;
+
+
+protected:
+
     // Protected data
 
         //! An empty string
         static const std::string nullString;
 
-        //! Request or Response headers
-        StringMapNoCase headers_;
 
 public:
 
@@ -137,8 +141,17 @@ public:
 
     // Member Operators
 
+        //- Sets an HTTP header to the value
+        //  This definition allows headers to be 'chained'
+        HttpCore& operator()
+        (
+            const std::string& name,
+            const std::string& value
+        );
+
         //! Return named header or null-string if it does not exist
         const std::string& operator[](const std::string& name) const;
+
 
 };
 

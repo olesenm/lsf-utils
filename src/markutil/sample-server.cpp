@@ -73,8 +73,8 @@ public:
             )
             {
                 head.status(head._405_METHOD_NOT_ALLOWED);
-                head.header("Allow", "GET,HEAD");
-                head.print(os);
+                head("Allow", "GET,HEAD");
+                os  << head;
                 head.html(os);
 
                 return 1;

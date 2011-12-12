@@ -304,11 +304,14 @@ const std::string& markutil::HttpCore::operator[]
 }
 
 
-
-// * * * * * * * * * * * * * * * Friend Functions  * * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * * * Friend Operators  * * * * * * * * * * * * * //
+markutil::HttpCore& markutil::HttpCore::operator()
+(
+    const std::string& name,
+    const std::string& value
+)
+{
+    headers_[name] = value;
+}
 
 
 // ************************************************************************* //

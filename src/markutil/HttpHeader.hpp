@@ -86,7 +86,7 @@ private:
         //! The response code to be sent back
         StatusCode status_;
 
-        //- The originating request
+        //! The originating request
         HttpRequest request_;
 
 
@@ -104,17 +104,17 @@ public:
     // Static Member Functions
 
 
-        //- Provide text representation of the status code
+        //! Provide text representation of the status code
         static const char *statusAsText(StatusCode code);
 
 
     // Constructors
 
-        //- Construct null
+        //! Construct null
         HttpHeader();
 
-        //- Construct with given status
-        HttpHeader(StatusCode code);
+        //! Construct with given status
+        explicit HttpHeader(StatusCode code);
 
 
     // Destructor
@@ -126,18 +126,18 @@ public:
 
         // Access
 
-            //- Special treatment for commonly-used "Content-Type" header
+            //! Special treatment for commonly-used "Content-Type" header
             //  Avoids potential typing mistakes
             const std::string& contentType() const;
 
-            //- Special treatment for commonly-used "Content-Length" header
+            //! Special treatment for commonly-used "Content-Length" header
             //  Avoids potential typing mistakes
             const std::string& contentLength() const;
 
-            //- Read-only access to the originating request
+            //!- Read-only access to the originating request
             const HttpRequest& request() const;
 
-            //- Provide text representation of the status code
+            //! Provide text representation of the status code
             const char *statusAsText() const;
 
 
@@ -145,46 +145,39 @@ public:
 
         // Edit
 
-            //- Sets an HTTP header
-            HttpHeader& header
-            (
-                const std::string& name,
-                const std::string& value
-            );
-
-
-            //- Sets commonly-used "Content-Type" header
+            //! Sets commonly-used "Content-Type" header
             //  Avoids potential typing mistakes
             HttpHeader& contentType(const std::string& val);
 
-            //- Sets commonly-used "Content-Length" header
+            //! Sets commonly-used "Content-Length" header
             //  Avoids potential typing mistakes
             HttpHeader& contentLength(const std::string& val);
 
-            //- Sets commonly-used "Content-Length" header from an integer
+            //! Sets commonly-used "Content-Length" header from an integer
             //  Avoids potential typing mistakes
             HttpHeader& contentLength(const unsigned val);
 
-            //- Read/write access to the originating request
+            //! Read/write access to the originating request
             HttpRequest& request();
 
-            //- Alter the status code
+            //! Alter the status code
             HttpHeader& status(StatusCode code);
 
 
            // Write
 
 
-            //- Output information as XML/HTML content
+            //! Output information as XML/HTML content
             //  Useful for generated error messages
             std::ostream& html(std::ostream&) const;
 
-            //- Output header contents
+            //! Output header contents
             std::ostream& print(std::ostream&) const;
 
 
     // Member Operators
 
+        using HttpCore::operator();
         using HttpCore::operator[];
 
 

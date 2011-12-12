@@ -212,7 +212,7 @@ int markutil::HttpServer::run()
             boost::fdostream os(sockfd);
 
             HttpHeader head;
-            head.header("Server", this->name());
+            head("Server", this->name());
             head.request().readHeader(is);
 
             int ret = this->reply(os, head);
@@ -248,7 +248,7 @@ int markutil::HttpServer::reply(std::ostream& os, HttpHeader& head) const
     )
     {
         head.status(head._405_METHOD_NOT_ALLOWED);
-        head.header("Allow", "GET,HEAD");
+        head("Allow", "GET,HEAD");
         head.print(os);
         head.html(os);
 

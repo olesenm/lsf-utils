@@ -71,11 +71,11 @@ void markutil::HttpHeader::setDefaults()
 {
     const std::string now = timestring();
 
-    headers_["Date"] = now;
-    headers_["Last-Modified"] = now;
-
-    headers_["Cache-Control"] = "no-cache";
-    headers_["Content-Type"]  = "text/html, charset=UFT-8";
+    this->operator()
+        ("Date", now)
+        ("Last-Modified", now)
+        ("Cache-Control", "no-cache")
+        ("Content-Type", "text/html, charset=UFT-8");
 }
 
 
@@ -134,21 +134,10 @@ const char *markutil::HttpHeader::statusAsText() const
 }
 
 
-markutil::HttpHeader& markutil::HttpHeader::header
-(
-    const std::string& name,
-    const std::string& value
-)
-{
-    headers_[name] = value;
-    return *this;
-}
-
-
 markutil::HttpHeader&
 markutil::HttpHeader::contentType(const std::string& val)
 {
-    headers_["Content-Type"] = val;
+    this->operator()("Content-Type", val);
     return *this;
 }
 
@@ -156,7 +145,7 @@ markutil::HttpHeader::contentType(const std::string& val)
 markutil::HttpHeader&
 markutil::HttpHeader::contentLength(const std::string& val)
 {
-    headers_["Content-Length"] = val;
+    this->operator()("Content-Length", val);
     return *this;
 }
 
@@ -166,7 +155,7 @@ markutil::HttpHeader::contentLength(const unsigned val)
 {
     std::ostringstream oss;
     oss << val;
-    headers_["Content-Length"] = oss.str();
+    this->operator()("Content-Length", oss.str());
     return *this;
 }
 
