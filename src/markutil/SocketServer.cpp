@@ -24,9 +24,8 @@ License
 #include <cstdlib>
 #include <iostream>
 #include <string>
-
 #include <netdb.h>
-#include <stropts.h>
+// #include <sys/ioctl.h>
 
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
@@ -66,7 +65,7 @@ bool markutil::SocketServer::create(bool reuse)
 
     // Change to non-blocking socket
 //    char arg;
-//    if (ioctl(fd_, FIONBIO, &arg) == -1)
+//    if (::ioctl(fd_, FIONBIO, &arg) == -1)
 //    {
 //        error_ = "failed to set socket to non-blocking mode";
 //        this->close();
