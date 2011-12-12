@@ -86,7 +86,8 @@ public:
         static std::string defaultName;
 
         //! \brief Convenience routine for daemonizing a process
-        static int daemonize();
+        //  optionally suppress exit and handle in caller instead
+        static int daemonize(const bool doNotExit=false);
 
         //! \brief Convenience routine to check for existence of a directory
         static bool isDir(const std::string& dir);

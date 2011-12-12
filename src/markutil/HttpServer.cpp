@@ -23,9 +23,10 @@ License
 #include "markutil/HttpHeader.hpp"
 #include "markutil/HttpRequest.hpp"
 
+#include <cstdlib>
+#include <string>
 #include <fcntl.h>
 #include <signal.h>
-#include <string>
 #include <sys/stat.h>
 
 #include "fdstream/fdstream.hpp"
@@ -47,19 +48,27 @@ static char buffer[BufSize];
 
 // * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
 
-int markutil::HttpServer::daemonize()
+int markutil::HttpServer::daemonize(const bool doNotExit)
 {
     // daemonize and no zombies children
-    int pid = ::fork();
-    if (pid < 0)
+    const int pid = ::fork();
+    if (pid)
     {
-        std::cerr << "Error: could not fork\n";  // could not fork?
-    }
-    else if (pid)
-    {
-        return 0;    // parent returns OK to shell
+        if (!doNotExit)
+        {
+            if (pid < 0)
+            {
+                std::cerr << "Error: could not fork\n";  // could not fork?
+                ::exit(1);
+            }
+            else
+            {
+                ::exit(0);    // parent returns OK to shell
+            }
+        }
     }
 
+    // this is the child
     ::setsid();                   // break away from process group
     ::signal(SIGCLD, SIG_IGN);    // ignore child death
     ::signal(SIGHUP, SIG_IGN);    // ignore terminal hangup
