@@ -311,6 +311,7 @@ markutil::HttpCore& markutil::HttpCore::operator()
 )
 {
     headers_[name] = value;
+    return *this;
 }
 
 

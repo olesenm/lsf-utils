@@ -38,6 +38,8 @@ INCLUDE += -I$(LSF_INCLUDEDIR)
 endif
 LD_LSF = -L$(LSF_LIBDIR) -lbat -llsf
 
+CXXFLAGS += -Wall -Wunused
+
 #---------------------------------------------------------------------------
 # DESTDIR is designed to facilitate making packages. Normally it is empty
 #---------------------------------------------------------------------------
