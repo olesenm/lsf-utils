@@ -249,8 +249,7 @@ int markutil::HttpServer::reply(std::ostream& os, HttpHeader& head) const
     {
         head(head._405_METHOD_NOT_ALLOWED);
         head("Allow", "GET,HEAD");
-        head.print(os);
-        head.html(os);
+        head.print(os, true);
 
         return 1;
     }
@@ -260,8 +259,7 @@ int markutil::HttpServer::reply(std::ostream& os, HttpHeader& head) const
     if (mimeType.empty())
     {
         head(head._404_NOT_FOUND);
-        head.print(os);
-        head.html(os);
+        head.print(os, true);
 
         return 1;
     }
@@ -273,8 +271,7 @@ int markutil::HttpServer::reply(std::ostream& os, HttpHeader& head) const
     if (fileFd == -1)
     {
         head(head._404_NOT_FOUND);
-        head.print(os);
-        head.html(os);
+        head.print(os, true);
 
         return 1;
     }

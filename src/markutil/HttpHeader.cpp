@@ -196,11 +196,20 @@ std::ostream& markutil::HttpHeader::html(std::ostream& os) const
 }
 
 
-std::ostream& markutil::HttpHeader::print(std::ostream& os) const
+std::ostream& markutil::HttpHeader::print
+(
+    std::ostream& os,
+    bool withHtml
+) const
 {
     os  << "HTTP/1.0 " << status_ << " " << statusAsText() << "\r\n";
     this->HttpCore::print(os);
     os  << "\r\n";
+
+    if (withHtml)
+    {
+        this->html(os);
+    }
 
     return os;
 }

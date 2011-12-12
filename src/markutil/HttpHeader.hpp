@@ -171,8 +171,8 @@ public:
             //  Useful for generated error messages
             std::ostream& html(std::ostream&) const;
 
-            //! Output header contents
-            std::ostream& print(std::ostream&) const;
+            //! Output header contents, optionaly with html
+            std::ostream& print(std::ostream&, bool withHtml=false) const;
 
 
     // Member Operators
