@@ -79,6 +79,12 @@ class HttpServer
 
 public:
 
+    // Typedefs
+    typedef markutil::HttpHeader  HeaderType;
+    typedef markutil::HttpQuery   QueryType;
+    typedef markutil::HttpRequest RequestType;
+
+
     // Static data members
 
         //! \brief The default port to use
@@ -139,7 +145,7 @@ public:
             int run();
 
             //! \brief Reply to the incoming request which is already embedded in the reply header
-            virtual int reply(std::ostream&, HttpHeader&) const;
+            virtual int reply(std::ostream&, HeaderType&) const;
 
 };
 

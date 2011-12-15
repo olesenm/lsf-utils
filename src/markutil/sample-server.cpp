@@ -58,13 +58,9 @@ public:
         }
 
 
-        virtual int reply
-        (
-            std::ostream& os,
-            markutil::HttpHeader& head
-        ) const
+        virtual int reply(std::ostream& os, HeaderType& head) const
         {
-            markutil::HttpRequest& req = head.request();
+            RequestType& req = head.request();
 
             if
             (
@@ -95,7 +91,7 @@ public:
 
                 if (req.type() == req.GET)
                 {
-                    const markutil::HttpQuery& query = req.query();
+                    const QueryType& query = req.query();
 
                     os  << "<html><head>"
                         << "<title>server-info</title>"
@@ -113,7 +109,7 @@ public:
 
                     if (!query.empty())
                     {
-                        const markutil::HttpQuery::string_list& unnamed = query.unnamed();
+                        const QueryType::string_list& unnamed = query.unnamed();
                         if (!unnamed.empty())
                         {
                             os  << unnamed.size()
@@ -135,7 +131,8 @@ public:
                             os  << "</blockquote><hr />";
                         }
 
-                        markutil::HttpQuery::string_list param = query.param();
+
+                        QueryType::string_list param = query.param();
                         if (!param.empty())
                         {
                             os  << param.size()
@@ -148,7 +145,7 @@ public:
                             )
                             {
                                 const std::string& name = param[nameI];
-                                const markutil::HttpQuery::string_list& vals
+                                const QueryType::string_list& vals
                                     = query.param(name);
 
                                 for
