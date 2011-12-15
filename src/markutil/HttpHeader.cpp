@@ -180,17 +180,13 @@ std::ostream& markutil::HttpHeader::html(std::ostream& os) const
     os  << "<html><head><title>"
         << status_ << " " << statusAsText()
         << "</title></head><body>"
-        << status_ << " " << statusAsText()
-        << "<br />";
+        << "<h1>" << status_ << " " << statusAsText() << "</h1>"
+        << "Resource <b>";
+    xmlEscapeChars(os, request_.path());
+    os  << "</b><hr />";
 
-    const std::string& uri = request_.requestURI();
-    if (!uri.empty())
-    {
-        os  << "uri: ";
-        escapeHtmlCharacters(os, uri);
-    }
-
-    os  << "</body></html>\n";
+    xmlEscapeChars(os, this->operator[]("Server"))
+        << " </body></html>\n";
 
     return os;
 }

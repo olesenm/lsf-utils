@@ -100,7 +100,6 @@ markutil::HttpRequest::HttpRequest()
 :
     type_(UNKNOWN),
     method_(),
-    uri_(),
     path_(),
     query_(),
     httpMajor_(0),
@@ -112,7 +111,6 @@ markutil::HttpRequest::HttpRequest(std::istream& is)
 :
     type_(UNKNOWN),
     method_(),
-    uri_(),
     path_(),
     query_(),
     httpMajor_(0),
@@ -126,7 +124,6 @@ markutil::HttpRequest::HttpRequest(int fd)
 :
     type_(UNKNOWN),
     method_(),
-    uri_(),
     path_(),
     query_(),
     httpMajor_(0),
@@ -149,7 +146,6 @@ void markutil::HttpRequest::clear()
 {
     type_ = UNKNOWN;
     method_.clear();
-    uri_.clear(),
     path_.clear();
     query_.clear();
     httpMajor_ = 0;
@@ -221,45 +217,42 @@ const std::string& markutil::HttpRequest::method() const
 }
 
 
-const std::string& markutil::HttpRequest::requestURI() const
+std::string markutil::HttpRequest::requestURI() const
 {
-    return uri_;
+    std::string uri;
+    std::string q = query_.toString();
+
+    uri.reserve(path_.size() + q.size());
+
+    // something like std::transform(path_.begin(), path_.end(), uri.begin(), UrlEncode);
+    httpAppendUrl(uri, path_);
+    if (q.size())
+    {
+        uri += '?';
+        uri += q;
+    }
+
+    return uri;
 }
 
 
-std::string& markutil::HttpRequest::requestURI(const std::string& newURI)
+void markutil::HttpRequest::requestURI(const std::string& uri)
 {
-    uri_ = newURI;
+    std::string::size_type question = uri.find('?');
 
-    // started with incorrect http://host../
-    if (uri_.substr(0, 7) == "http://")
-    {
-        size_t slash = uri_.find('/', 7);
-        if (slash == std::string::npos)
-        {
-            uri_ = "/";
-        }
-        else
-        {
-            uri_.erase(0, slash);
-        }
-    }
-
-    std::string::size_type question = uri_.find('?');
+    path_ = httpDecodeUri(uri, 0, question);
     if (question == std::string::npos)
     {
-        path_ = uri_;
         query_.clear();
     }
     else
     {
-        path_  = uri_.substr(0, question);
-        query_ = uri_.substr(question+1);
-        httpDecodeUri(query_);
-    }
-    httpDecodeUri(path_);
+        query_.parseUrl(uri, question+1);
 
-    return uri_;
+        std::cerr
+            << "query unnamed: " << query_.unnamed().size() << "\n"
+            << "query params: "  << query_.param().size() << "\n";
+    }
 }
 
 
@@ -284,7 +277,7 @@ std::string markutil::HttpRequest::ext() const
 }
 
 
-const std::string& markutil::HttpRequest::query() const
+const markutil::HttpQuery& markutil::HttpRequest::query() const
 {
     return query_;
 }
@@ -292,7 +285,7 @@ const std::string& markutil::HttpRequest::query() const
 
 std::ostream& markutil::HttpRequest::print(std::ostream& os) const
 {
-    os  << method_ << " " << uri_ << "\r\n";
+    os  << method_ << " " << requestURI() << "\r\n";
     this->HttpCore::print(os);
     os  << "\r\n";
 

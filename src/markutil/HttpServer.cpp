@@ -94,6 +94,7 @@ bool markutil::HttpServer::isDir(const std::string& dir)
 
 markutil::HttpServer::HttpServer(unsigned short port, bool reuse)
 :
+    HttpCore(),
     SocketServer(reuse),
     port_(defaultPort),
     root_(defaultRoot),
@@ -110,6 +111,7 @@ markutil::HttpServer::HttpServer(unsigned short port, bool reuse)
 
 markutil::HttpServer::HttpServer(const std::string& port, bool reuse)
 :
+    HttpCore(),
     SocketServer(reuse),
     port_(defaultPort),
     root_(defaultRoot),
@@ -128,6 +130,7 @@ markutil::HttpServer::HttpServer(const std::string& port, bool reuse)
 
 markutil::HttpServer::HttpServer(const char* port, bool reuse)
 :
+    HttpCore(),
     SocketServer(reuse),
     port_(defaultPort),
     root_(defaultRoot),

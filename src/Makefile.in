@@ -104,6 +104,7 @@ LIBOBJS = \
 LIB2SRCS = \
     markutil/HttpCore.cpp \
     markutil/HttpHeader.cpp \
+    markutil/HttpQuery.cpp \
     markutil/HttpRequest.cpp \
     markutil/HttpServer.cpp \
     markutil/SocketServer.cpp
@@ -111,6 +112,7 @@ LIB2SRCS = \
 LIB2OBJS = \
     markutil/HttpCore.o \
     markutil/HttpHeader.o \
+    markutil/HttpQuery.o \
     markutil/HttpRequest.o \
     markutil/HttpServer.o \
     markutil/SocketServer.o

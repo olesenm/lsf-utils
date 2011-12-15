@@ -43,6 +43,19 @@ const std::string markutil::HttpCore::nullString;
 
 // * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
 
+inline const std::string hexEncode(char ch)
+{
+    static char hex[] = "0123456789ABCDEF";
+    static std::string buf('%', 3);
+
+    buf[0] = '%';
+    buf[1] = hex[((ch >> 4) & 0x0F)];
+    buf[2] = hex[(ch & 0x0F)];
+
+    return buf;
+}
+
+
 // date in RFC1123 format
 // eg
 //     Sun, 06 Nov 1994 08:49:37 GMT
@@ -70,25 +83,25 @@ const std::string& markutil::HttpCore::lookupMime(const std::string& ext)
     if (lookup.empty())
     {
         // text
-        lookup["html"] = "text/html";
+        lookup["css"]  = "text/css";
         lookup["htm"]  = "text/html";
+        lookup["html"] = "text/html";
         lookup["txt"]  = "text/plain";
         lookup["xml"]  = "text/xml";
         lookup["xsl"]  = "text/xsl";
         lookup["xhtml"] = "application/xhtml+xml";
-        lookup["css"]  = "text/css";
 
         // image
-        lookup["ico"]  = "image/x-icon";
         lookup["gif"]  = "image/gif";
-        lookup["jpg"]  = "image/jpeg";
+        lookup["ico"]  = "image/x-icon";
         lookup["jpeg"] = "image/jpeg";
+        lookup["jpg"]  = "image/jpeg";
         lookup["png"]  = "image/png";
 
         // application
+        lookup["gz"]   = "application/x-gzip";
         lookup["pdf"]  = "application/pdf";
         lookup["tar"]  = "application/x-tar";
-        lookup["gz"]   = "application/x-gzip";
         lookup["zip"]  = "application/x-zip-compressed";
     }
 
@@ -108,67 +121,133 @@ const std::string& markutil::HttpCore::lookupMime(const std::string& ext)
     }
 }
 
-
-
-bool markutil::HttpCore::httpDecodeUri(std::string& str)
+//
+// http://tools.ietf.org/html/rfc3986#section-2.2
+//
+// but only handle some
+//
+std::string& markutil::HttpCore::httpAppendUrl(std::string& url, char ch)
 {
-    bool ok = true;
-    for
-    (
-        std::size_t pos = 0, len = 0;
-        pos < str.size();
-        ++pos, ++len
-    )
+    switch (ch)
     {
-        if (str[pos] == '%')
-        {
-            if (pos + 3 <= str.size())   // %<hex><hex> needs 2 hex chars
+        case '\x20' :
+            url += '+';
+            break;
+
+        case '%' :   // percent must be encoded
+        case '&' :
+        case '+' :
+        case ';' :
+        case '=' :
+        case '?' :
+            url += hexEncode(ch);
+            break;
+
+        default :
+            if (ch > 32 && ch < 127)
             {
-                int val = 0;
-                std::istringstream is(str.substr(pos + 1, 2));
-                if (is >> std::hex >> val)
-                {
-                    str[len] = static_cast<char>(val);
-                    pos += 2;
-                }
-                else
-                {
-                    str[len] = str[pos];
-                    ok = false;
-                }
+                url += ch;
             }
             else
             {
-                str[len] = str[pos];
-                ok = false;
+                url += hexEncode(ch);
             }
-        }
-        else if (str[pos] == '+')
-        {
-            str[len] = ' ';
-        }
-        else
-        {
-            str[len] = str[pos];
-        }
+            break;
     }
 
-    return true;
+    return url;
 }
 
 
-std::ostream& markutil::HttpCore::escapeHtmlCharacters
+std::string& markutil::HttpCore::httpAppendUrl
 (
-    std::ostream& os,
+    std::string& url,
     const std::string& str
 )
 {
     for
     (
-        std::size_t pos = 0;
-        pos < str.size();
-        ++pos
+        std::string::const_iterator iter = str.begin();
+        iter != str.end();
+        ++iter
     )
+    {
+        httpAppendUrl(url, *iter);
+    }
+
+    return url;
+}
+
+
+std::string markutil::HttpCore::httpDecodeUri
+(
+    const std::string& str,
+    size_t pos,
+    size_t n
+)
+{
+    std::string out;
+
+    if (n == std::string::npos)
+    {
+        n = str.size() - pos;
+    }
+
+    // max this many characters, after hex-dcoding there may be few
+    if (n > 0)
+    {
+        out.reserve(n);
+    }
+
+    int nhex = -1;         // count of hex digits
+    int dehex = 0;         // decoded hex value
+
+    for (; n && pos < str.size(); ++pos, --n)
+    {
+        char ch = str[pos];
+
+        if (ch == '%')
+        {
+            dehex = nhex = 0;
+        }
+        else if (ch == '+')
+        {
+            out += ' ';
+            nhex = -1;
+        }
+        else if (nhex >= 0)
+        {
+            dehex =
+            (
+                (dehex * 16)
+              + (isdigit(ch) ? (ch - '0') : (toupper(ch) - 'A' + 10))
+            );
+
+            if (++nhex == 2)
+            {
+                out += static_cast<char>(dehex);
+                dehex = 0;
+                nhex = -1;
+            }
+        }
+        else
+        {
+            out += ch;
+            nhex = -1;
+        }
+    }
+
+    return out;
+}
+
+
+std::ostream& markutil::HttpCore::xmlEscapeChars
+(
+    std::ostream& os,
+    const std::string& str
+)
+{
+    for (std::size_t pos = 0; pos < str.size(); ++pos)
     {
         switch (str[pos])
         {
@@ -189,12 +268,6 @@ std::ostream& markutil::HttpCore::escapeHtmlCharacters
 
     return os;
 }
-
-
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //

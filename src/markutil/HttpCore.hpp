@@ -104,11 +104,31 @@ public:
         //! Return mime-type corresponding to the extension name
         static const std::string& lookupMime(const std::string& ext);
 
-        //! Decode %<hex><hex> and '+' in-place
-        static bool httpDecodeUri(std::string&);
+        //! String append while encoding special characters
+        //  Reserved characters '%', '&', '+', ';', '=', '?'
+        static std::string& httpAppendUrl
+        (
+            std::string& url,
+            char ch
+        );
 
-        // escape '&', '<', '>' characters
-        static std::ostream& escapeHtmlCharacters
+        //! String append while encoding special characters
+        static std::string& httpAppendUrl
+        (
+            std::string& url,
+            const std::string& str
+        );
+
+        //! Decode %<hex><hex> and '+' characters
+        static std::string httpDecodeUri
+        (
+            const std::string& str,
+            size_t pos = 0,
+            size_t n = std::string::npos
+        );
+
+        //! Escape '&', '<', '>' characters
+        static std::ostream& xmlEscapeChars
         (
             std::ostream&,
             const std::string&

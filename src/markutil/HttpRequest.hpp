@@ -33,6 +33,7 @@ SeeAlso
 #define MARK_HTTP_REQUEST_H
 
 #include "markutil/HttpCore.hpp"
+#include "markutil/HttpQuery.hpp"
 #include <iostream>
 
 
@@ -70,20 +71,17 @@ private:
 
     // Private data
 
-        // The method as an enumeration
+        //- The method as an enumeration
         MethodType type_;
 
-        // The method as a string
+        //- The method as a string
         std::string method_;
 
-        // The raw URI
-        std::string uri_;
-
-        // Everything up to the '?' query - decoded
+        //- Everything up to the '?' query - decoded
         std::string path_;
 
-        // Everything after the '?' query - decoded
-        std::string query_;
+        //- Everything after the '?' query - decoded
+        HttpQuery query_;
 
         unsigned short httpMajor_;
 
@@ -136,16 +134,16 @@ public:
             const std::string& method() const;
 
             //! \brief Return the Request-URI
-            const std::string& requestURI() const;
+            std::string requestURI() const;
 
             //! \brief Rewrite the Request-URI, updatind path and query too
-            std::string& requestURI(const std::string& newURI);
+            void requestURI(const std::string& newURI);
 
             //! \brief Return the Request Path, which is everything up to the '?'
             const std::string& path() const;
 
             //! \brief Return the Request Query string, which is everything after the '?'
-            const std::string& query() const;
+            const HttpQuery& query() const;
 
             //! \brief Return the extension of the path
             std::string ext() const;

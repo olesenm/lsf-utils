@@ -19,7 +19,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "SocketServer.hpp"
+#include "markutil/SocketServer.hpp"
 
 #include <cstdlib>
 #include <iostream>
@@ -75,9 +75,6 @@ bool markutil::SocketServer::create(bool reuse)
     return true;
 }
 
-
-
-// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 

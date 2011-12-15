@@ -95,12 +95,85 @@ public:
 
                 if (req.type() == req.GET)
                 {
+                    const markutil::HttpQuery& query = req.query();
+
                     os  << "<html><head>"
                         << "<title>server-info</title>"
                         << "</head><body>"
                         << "Date: " << head["Date"] << "<br />"
                         << "Server: " << this->name() << "<br />"
-                        << "</body></html>\n";
+                        << "Request: ";
+
+                    xmlEscapeChars
+                    (
+                        os,
+                        req.requestURI()
+                    ) << "<br />";
+                    os  << "<hr />";
+
+                    if (!query.empty())
+                    {
+                        const markutil::HttpQuery::string_list& unnamed = query.unnamed();
+                        if (!unnamed.empty())
+                        {
+                            os  << unnamed.size()
+                                << " unnamed<br /><blockquote>";
+
+                            for
+                            (
+                                unsigned nameI = 0;
+                                nameI < unnamed.size();
+                                ++nameI
+                            )
+                            {
+                                xmlEscapeChars
+                                (
+                                    os,
+                                    unnamed[nameI]
+                                )  << "<br />";
+                            }
+                            os  << "</blockquote><hr />";
+                        }
+
+                        markutil::HttpQuery::string_list param = query.param();
+                        if (!param.empty())
+                        {
+                            os  << param.size()
+                                << " param<br /><blockquote>";
+                            for
+                            (
+                                unsigned nameI = 0;
+                                nameI < param.size();
+                                ++nameI
+                            )
+                            {
+                                const std::string& name = param[nameI];
+                                const markutil::HttpQuery::string_list& vals
+                                    = query.param(name);
+
+                                for
+                                (
+                                    unsigned valI = 0;
+                                    valI < vals.size();
+                                    ++valI
+                                )
+                                {
+                                    xmlEscapeChars
+                                    (
+                                        os,
+                                        name
+                                    ) << "=";
+                                    xmlEscapeChars
+                                    (
+                                        os,
+                                        vals[valI]
+                                    ) << "<br />";
+                                }
+                            }
+                            os  << "</blockquote><hr />";
+                        }
+                    }
+                    os  << "</body></html>\n";
                 }
 
                 return 0;

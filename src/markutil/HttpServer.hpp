@@ -28,6 +28,10 @@ Description
 SourceFiles
     HttpServer.cpp
 
+Notes
+    The inheritance from markutil::HttpCore is purely a convenience
+    to pass through its static methods.
+
 \*---------------------------------------------------------------------------*/
 
 #ifndef MARK_HTTP_SERVER_H
@@ -58,6 +62,7 @@ namespace markutil
 
 class HttpServer
 :
+    public HttpCore,
     public SocketServer
 {
     // Private data
