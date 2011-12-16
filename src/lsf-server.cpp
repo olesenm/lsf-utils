@@ -148,6 +148,12 @@ class LsfServer
             addToFilter(userFilter, query, "owner");
             addToFilter(userFilter, query, "user");
 
+            // if userFilter has 'all' this is the same as no filter
+            // also respect '*' as per GridEngine
+            if (userFilter.count("all") || userFilter.count("*"))
+            {
+                userFilter.clear();
+            }
 
             // filter job-list based on query parameters
             std::vector<int> displayJob;
