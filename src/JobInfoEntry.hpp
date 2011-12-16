@@ -134,7 +134,18 @@ public:
 
         // Access
 
+        //- The name relative to the cwd
+        std::string relativeFilePath(const std::string& name) const;
+
+
         // Check
+
+        inline bool hasTasks() const
+        {
+            return taskId > 0;
+        }
+
+        std::string tokenJ() const;
 
         // Edit
 

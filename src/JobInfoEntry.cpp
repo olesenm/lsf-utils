@@ -40,6 +40,54 @@ inline std::string makeString(const char* str)
     return std::string(str ? str : "");
 }
 
+// misc utils
+inline std::string toString(const char* str)
+{
+    return std::string(str ? str : "");
+}
+
+
+inline std::string toString(int i)
+{
+    if (i)
+    {
+        std::ostringstream os;
+        os  << i;
+        return os.str();
+    }
+    else
+    {
+        return "0";
+    }
+}
+
+
+bool fixDirName(std::string& name)
+{
+    bool changed = false;
+    while (name.size() > 1 && name[name.size()-1] == '/')
+    {
+        name.resize(name.size()-1);
+        changed = true;
+    }
+
+    return changed;
+}
+
+bool fixFileName(std::string& name)
+{
+    if (name.size() > 2 && name[0] == '.' && name[1] == '/')
+    {
+        name.erase(0, 2);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+
 
 std::string LsfUtil::JobInfoEntry::jobStatusToString
 (
@@ -100,6 +148,7 @@ LsfUtil::JobInfoEntry::JobInfoEntry(const struct jobInfoEnt& job)
     execHosts()
 {
     status = jobStatusToString(job);
+    fixDirName(cwd);
 
     if (job.jStartNumExHosts)
     {
@@ -125,6 +174,35 @@ LsfUtil::JobInfoEntry::~JobInfoEntry()
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+
+std::string LsfUtil::JobInfoEntry::relativeFilePath
+(
+    const std::string& name
+) const
+{
+    std::string relfile(name);
+    fixFileName(relfile);
+
+    // filename relative to cwd whenever possible
+    if
+    (
+        relfile.size() > cwd.size()+1
+     && relfile[cwd.size()] == '/'
+     && relfile.substr(0, cwd.size()) == cwd
+    )
+    {
+        relfile.erase(0, cwd.size()+1);
+    }
+
+    return relfile;
+}
+
+
+std::string LsfUtil::JobInfoEntry::tokenJ() const
+{
+    return toString(jobId);
+}
+
 
 #if 0
 // print some of job info structure
@@ -427,7 +505,7 @@ LsfUtil::JobInfoEntry::printXML(std::ostream& os) const
 
     return os;
 }
-#endif 
+#endif
 
 // * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
 

@@ -87,8 +87,8 @@ std::string& replaceAll
 
     while ((foundHere = context.find(from, lookHere)) != std::string::npos)
     {
-          context.replace(foundHere, from.size(), to);
-          lookHere = foundHere + to.size();
+        context.replace(foundHere, from.size(), to);
+        lookHere = foundHere + to.size();
     }
     return context;
 }
