@@ -137,7 +137,19 @@ const char *markutil::HttpHeader::statusAsText() const
 markutil::HttpHeader&
 markutil::HttpHeader::contentType(const std::string& val)
 {
-    this->operator()("Content-Type", val);
+    if (val.find('/') == std::string::npos)
+    {
+        const std::string& mime = HttpCore::lookupMime(val);
+        if (!mime.empty())
+        {
+            this->operator()("Content-Type", mime);
+        }
+    }
+    else
+    {
+        this->operator()("Content-Type", val);
+    }
+
     return *this;
 }
 

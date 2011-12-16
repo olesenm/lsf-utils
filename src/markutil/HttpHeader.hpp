@@ -128,6 +128,7 @@ public:
 
             //! Special treatment for commonly-used "Content-Type" header
             //  Avoids potential typing mistakes
+            //  If the mime-type is missing a '/', lookup from extension
             const std::string& contentType() const;
 
             //! Special treatment for commonly-used "Content-Length" header
