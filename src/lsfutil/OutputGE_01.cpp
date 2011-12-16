@@ -17,13 +17,10 @@ License
     You should have received a copy of the GNU General Public License
     along with lsf-utils. If not, see <http://www.gnu.org/licenses/>.
 
-Description
-    --
-
 \*---------------------------------------------------------------------------*/
 
-#include "OutputGE_01.hpp"
-#include "XmlUtils.hpp"
+#include "lsfutil/OutputGE_01.hpp"
+#include "lsfutil/XmlUtils.hpp"
 
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //

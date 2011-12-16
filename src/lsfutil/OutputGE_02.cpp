@@ -22,8 +22,8 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#include "OutputGE_02.hpp"
-#include "XmlUtils.hpp"
+#include "lsfutil/OutputGE_02.hpp"
+#include "lsfutil/XmlUtils.hpp"
 
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //

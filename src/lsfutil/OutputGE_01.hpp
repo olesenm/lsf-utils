@@ -22,20 +22,20 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef OutputGE_02_H
-#define OutputGE_02_H
+#ifndef OutputGE_01_H
+#define OutputGE_01_H
 
 #include <iostream>
 
-#include "JobList.hpp"
-#include "JobInfoEntry.hpp"
+#include "lsfutil/JobList.hpp"
+#include "lsfutil/JobInfoEntry.hpp"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace LsfUtil
 {
 
-namespace OutputGE_02
+namespace OutputGE_01
 {
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -47,13 +47,9 @@ namespace OutputGE_02
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace OutputGE_02
+} // End namespace OutputGE_01
 
 } // End namespace LsfUtil
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-// #include "JobListI.hpp"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -193,7 +193,7 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// #include "XmlUtilsI.hpp"
+// #include "lsfutil/XmlUtilsI.hpp"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

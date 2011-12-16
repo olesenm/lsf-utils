@@ -32,11 +32,11 @@ Description
 #include <iostream>
 #include <ctime>
 
-#include "JobList.hpp"
-#include "JobInfoEntry.hpp"
-#include <lsf/lsbatch.h>
+#include "lsfutil/JobList.hpp"
+#include "lsfutil/JobInfoEntry.hpp"
+#include "lsfutil/OutputGE_02.hpp"
 
-#include "OutputGE_02.hpp"
+#include <lsf/lsbatch.h>
 
 static void usage(const std::string& message = "")
 {

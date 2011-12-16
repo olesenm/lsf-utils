@@ -204,7 +204,7 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// #include "JobSubmitEntryI.hpp"
+// #include "lsfutil/JobSubmitEntryI.hpp"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

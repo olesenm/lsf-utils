@@ -30,7 +30,7 @@ Description
 #include <vector>
 #include <iostream>
 
-#include "JobInfoEntry.hpp"
+#include "lsfutil/JobInfoEntry.hpp"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -118,7 +118,7 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// #include "JobListI.hpp"
+// #include "lsfutil/JobListI.hpp"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

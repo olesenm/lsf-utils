@@ -73,32 +73,32 @@ BINS = blsof lsfutils
 ####### Files
 
 LIBHDRS = \
-    JobIdentifier.hpp \
-    JobInfoEntry.hpp \
-    JobList.hpp \
-    JobSubmitEntry.hpp \
-    OutputGE_01.hpp \
-    OutputGE_02.hpp \
-    Rusage.hpp \
-    XmlUtils.hpp
+    lsfutil/JobIdentifier.hpp \
+    lsfutil/JobInfoEntry.hpp \
+    lsfutil/JobList.hpp \
+    lsfutil/JobSubmitEntry.hpp \
+    lsfutil/OutputGE_01.hpp \
+    lsfutil/OutputGE_02.hpp \
+    lsfutil/Rusage.hpp \
+    lsfutil/XmlUtils.hpp
 
 LIBSRCS = \
-    JobIdentifier.cpp \
-    JobInfoEntry.cpp \
-    JobList.cpp \
-    JobSubmitEntry.cpp \
-    OutputGE_01.cpp \
-    OutputGE_02.cpp \
-    Rusage.cpp
+    lsfutil/JobIdentifier.cpp \
+    lsfutil/JobInfoEntry.cpp \
+    lsfutil/JobList.cpp \
+    lsfutil/JobSubmitEntry.cpp \
+    lsfutil/OutputGE_01.cpp \
+    lsfutil/OutputGE_02.cpp \
+    lsfutil/Rusage.cpp
 
 LIBOBJS = \
-    JobIdentifier.o \
-    JobInfoEntry.o \
-    JobList.o \
-    JobSubmitEntry.o \
-    OutputGE_01.o \
-    OutputGE_02.o \
-    Rusage.o
+    lsfutil/JobIdentifier.o \
+    lsfutil/JobInfoEntry.o \
+    lsfutil/JobList.o \
+    lsfutil/JobSubmitEntry.o \
+    lsfutil/OutputGE_01.o \
+    lsfutil/OutputGE_02.o \
+    lsfutil/Rusage.o
 
 
 LIB2SRCS = \
@@ -178,7 +178,7 @@ sample-server: markutil/sample-server.cpp libmarkutil.a
 # clean targets
 
 clean:
-	/bin/rm -f *~ \#* $(BINS) $(LIB) *.o
+	/bin/rm -f *~ \#* $(BINS) $(LIB) *.o markutil/*.o lsfutil/*.o
 
 distclean: clean
 	/bin/rm -rf Makefile sysconf.h config.h $(srcdir)/*.bak

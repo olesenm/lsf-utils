@@ -17,12 +17,9 @@ License
     You should have received a copy of the GNU General Public License
     along with lsf-utils. If not, see <http://www.gnu.org/licenses/>.
 
-Description
-    --
-
 \*---------------------------------------------------------------------------*/
 
-#include "JobList.hpp"
+#include "lsfutil/JobList.hpp"
 
 #include <ctime>
 #include <lsf/lsbatch.h>

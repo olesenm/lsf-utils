@@ -29,7 +29,7 @@ Description
 #include <string>
 #include <vector>
 
-#include "JobSubmitEntry.hpp"
+#include "lsfutil/JobSubmitEntry.hpp"
 
 // Forward declaration of classes
 struct jobInfoEnt;
@@ -169,7 +169,7 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// #include "JobInfoEntryI.hpp"
+// #include "lsfutil/JobInfoEntryI.hpp"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

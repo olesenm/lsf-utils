@@ -36,11 +36,10 @@ SourceFiles
 #include <sstream>
 
 #include "markutil/HttpServer.hpp"
-#include "JobList.hpp"
-#include "JobInfoEntry.hpp"
-#include "OutputGE_02.hpp"
-#include "Rusage.hpp"
-
+#include "lsfutil/JobList.hpp"
+#include "lsfutil/JobInfoEntry.hpp"
+#include "lsfutil/OutputGE_02.hpp"
+#include "lsfutil/Rusage.hpp"
 #include <lsf/lsbatch.h>
 
 

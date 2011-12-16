@@ -28,10 +28,11 @@ Description
 
 #include <unistd.h>
 #include <pwd.h>
+
+#include "lsfutil/JobIdentifier.hpp"
+#include "lsfutil/Rusage.hpp"
 #include <lsf/lsbatch.h>
 
-#include "JobIdentifier.hpp"
-#include "Rusage.hpp"
 
 static void usage(const std::string& message = "")
 {
@@ -312,5 +313,6 @@ int main(int argc, char **argv)
 
     return 0;
 }
+
 
 /* ************************************************************************* */
