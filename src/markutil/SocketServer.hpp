@@ -50,6 +50,7 @@ class SocketServer
         //! Create a socket
         bool create(bool reuse);
 
+
 protected:
 
     // Protected data
@@ -83,10 +84,9 @@ public:
         SocketServer(const char* port, bool reuse = true);
 
 
-    // Destructor
+    //! Destructor
+    ~SocketServer();
 
-        //! \brief Destructor
-        ~SocketServer();
 
     // Member Functions
 
@@ -132,6 +132,8 @@ public:
 
 };
 
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace markutil
 

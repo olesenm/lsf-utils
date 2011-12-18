@@ -28,9 +28,6 @@ License
 #include <sstream>
 
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
-
-
 // * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
 
 const char *markutil::HttpHeader::statusAsText(StatusCode code)
@@ -44,6 +41,7 @@ const char *markutil::HttpHeader::statusAsText(StatusCode code)
         lookup[_200_OK] = "OK";
         lookup[_301_MOVED_PERMANENTLY] = "Moved Permanently";
         lookup[_302_FOUND] = "FOUND";
+        lookup[_304_NOT_MODIFIED] = "Not Modified";
         lookup[_400_BAD_REQUEST] = "Bad request";
         lookup[_401_UNAUTHORIZED] = "Unauthorized";
         lookup[_403_FORBIDDEN] = "Forbidden";
@@ -51,6 +49,7 @@ const char *markutil::HttpHeader::statusAsText(StatusCode code)
         lookup[_405_METHOD_NOT_ALLOWED] = "Method Not Allowed";
         lookup[_500_INTERNAL_SERVER_ERROR] = "Internal Server Error";
         lookup[_501_NOT_IMPLEMENTED] = "Not Implemented";
+        lookup[_503_SERVICE_UNAVAILABLE] = "Service Unavailable";
     }
 
     std::map<int, const char*>::const_iterator iter = lookup.find(code);
@@ -75,7 +74,7 @@ void markutil::HttpHeader::setDefaults()
         ("Date", now)
         ("Last-Modified", now)
         ("Cache-Control", "no-cache")
-        ("Content-Type", "text/html, charset=UFT-8");
+        ("Content-Type", "text/html; charset=UTF-8");
 }
 
 

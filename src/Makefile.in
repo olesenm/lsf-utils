@@ -173,6 +173,10 @@ sample-server: markutil/sample-server.cpp libmarkutil.a
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ $< \
     $(LDFLAGS) -L$(srcdir)  -lmarkutil
 
+normalizePath: tests/normalizePath.cpp libmarkutil.a
+	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ $< \
+    $(LDFLAGS) -L$(srcdir)  -lmarkutil
+
 
 # -----------------------------------------------------------------------------
 # clean targets

@@ -45,6 +45,10 @@ core
 /src/Makefile
 /src/config.h
 
+# ignore Doxygen generated files
+/doc/html
+/src/html
+
 # ignore the persistent .build tag in the main directory
 /.build
 

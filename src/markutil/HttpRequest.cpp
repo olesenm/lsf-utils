@@ -102,8 +102,7 @@ markutil::HttpRequest::HttpRequest()
     method_(),
     path_(),
     query_(),
-    httpMajor_(0),
-    httpMinor_(9)
+    httpver_()
 {}
 
 
@@ -113,8 +112,7 @@ markutil::HttpRequest::HttpRequest(std::istream& is)
     method_(),
     path_(),
     query_(),
-    httpMajor_(0),
-    httpMinor_(9)
+    httpver_()
 {
     readHeader(is);
 }
@@ -126,8 +124,7 @@ markutil::HttpRequest::HttpRequest(int fd)
     method_(),
     path_(),
     query_(),
-    httpMajor_(0),
-    httpMinor_(9)
+    httpver_()
 {
     boost::fdistream is(fd);
     readHeader(is);
@@ -148,8 +145,7 @@ void markutil::HttpRequest::clear()
     method_.clear();
     path_.clear();
     query_.clear();
-    httpMajor_ = 0;
-    httpMinor_ = 9;
+    httpver_.clear();
 
     this->HttpCore::clear();
 }
@@ -181,24 +177,7 @@ void markutil::HttpRequest::readHeader(std::istream& is)
     // HTTP-Version = "HTTP" "/" 1*DIGIT "." 1*DIGIT
     if (beg != std::string::npos)
     {
-        std::string httpver = getToken(buf, beg);
-        size_t slash = httpver.find('/');
-        if
-        (
-            slash != std::string::npos
-         && httpver.substr(0, slash) == "HTTP"
-        )
-        {
-            ++slash;
-            size_t dot = httpver.find('.', slash);
-
-            if (dot != std::string::npos)
-            {
-                httpMajor_ = atoi(httpver.substr(slash, dot-slash).c_str());
-                ++dot;
-                httpMinor_ = atoi(httpver.substr(dot).c_str());
-            }
-        }
+        httpver_ = getToken(buf, beg);
     }
 
     this->HttpCore::readHeader(is);
@@ -224,7 +203,6 @@ std::string markutil::HttpRequest::requestURI() const
 
     uri.reserve(path_.size() + q.size());
 
-    // something like std::transform(path_.begin(), path_.end(), uri.begin(), UrlEncode);
     httpAppendUrl(uri, path_);
     if (q.size())
     {
@@ -238,20 +216,31 @@ std::string markutil::HttpRequest::requestURI() const
 
 void markutil::HttpRequest::requestURI(const std::string& uri)
 {
-    std::string::size_type question = uri.find('?');
+    std::string::size_type frag = uri.find_first_of("#?");
 
-    path_ = httpDecodeUri(uri, 0, question);
-    if (question == std::string::npos)
+    path_ = httpDecodeUrl(uri, 0, frag);
+    httpNormalizePath(path_);
+
+    if
+    (
+        frag != std::string::npos
+     && uri[frag] == '?'
+    )
     {
-        query_.clear();
+        // a question (not a fragment) ... keep looking
+        std::string::size_type question = frag;
+        frag = uri.find('#', frag);
+
+        if (frag != std::string::npos)
+        {
+            // convert to parameter length
+            frag = frag - question - 1;
+        }
+        query_.parseUrl(uri, question + 1, frag);
     }
     else
     {
-        query_.parseUrl(uri, question+1);
-
-        std::cerr
-            << "query unnamed: " << query_.unnamed().size() << "\n"
-            << "query params: "  << query_.param().size() << "\n";
+        query_.clear();
     }
 }
 

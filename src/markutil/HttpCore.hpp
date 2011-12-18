@@ -46,10 +46,10 @@ namespace markutil
 
 class HttpCore
 {
-   /**
-    * case-insensitive compare, return value for "string1 < string2"
-    * may not work for non-ASCII, but HTTP headers are ASCII anynow
-    */
+    //! case-insensitive compare
+    //
+    //  return value for "string1 < string2"
+    //  may not work for non-ASCII, but HTTP headers are ASCII anynow
     struct noCaseCmp
     {
         bool operator()(const std::string& s1, const std::string& s2) const
@@ -58,7 +58,7 @@ class HttpCore
         }
     };
 
-    /// string -> string map with case-insensitive search
+    //! string -> string map with case-insensitive search
     typedef std::map
     <
        std::string,
@@ -105,7 +105,12 @@ public:
         static const std::string& lookupMime(const std::string& ext);
 
         //! String append while encoding special characters
+        //
         //  Reserved characters '%', '&', '+', ';', '=', '?'
+        //
+        // http://tools.ietf.org/html/rfc3986#section-2.2
+        // but only handle some
+        //
         static std::string& httpAppendUrl
         (
             std::string& url,
@@ -120,12 +125,18 @@ public:
         );
 
         //! Decode %<hex><hex> and '+' characters
-        static std::string httpDecodeUri
+        static std::string httpDecodeUrl
         (
             const std::string& str,
             size_t pos = 0,
             size_t n = std::string::npos
         );
+
+
+        //! normalize abs-path
+        //  http://tools.ietf.org/html/rfc3986#section-5.2.4
+        static std::string& httpNormalizePath(std::string&);
+
 
         //! Escape '&', '<', '>' characters
         static std::ostream& xmlEscapeChars
@@ -133,6 +144,13 @@ public:
             std::ostream&,
             const std::string&
         );
+
+
+        //! Convenience routine to check for existence of a directory
+        static bool isDir(const std::string& name);
+
+        //! Convenience routine to check for existence of a file
+        static bool isFile(const std::string& name);
 
 
         //! Read header lines of form "Key: Value ..."
@@ -172,9 +190,10 @@ public:
         //! Return named header or null-string if it does not exist
         const std::string& operator[](const std::string& name) const;
 
-
 };
 
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace markutil
 

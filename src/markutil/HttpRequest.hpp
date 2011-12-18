@@ -83,9 +83,8 @@ private:
         //- Everything after the '?' query - decoded
         HttpQuery query_;
 
-        unsigned short httpMajor_;
-
-        unsigned short httpMinor_;
+        //- The HTTP version, eg HTTP/1.0
+        std::string httpver_;
 
 
     // Private Member Functions
@@ -157,10 +156,14 @@ public:
 
     // Member Operators
 
+        //! \brief Access to the header fields
+        using HttpCore::operator();
         using HttpCore::operator[];
 
 };
 
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace markutil
 

@@ -21,7 +21,7 @@ Class
     markutil::HttpHeader
 
 Description
-
+    HTTP response header
 
 SourceFiles
     HttpHeader.cpp
@@ -69,13 +69,15 @@ public:
         _200_OK = 200,
         _301_MOVED_PERMANENTLY = 301,
         _302_FOUND = 302,
+        _304_NOT_MODIFIED = 304,
         _400_BAD_REQUEST = 400,
         _401_UNAUTHORIZED = 401,
         _403_FORBIDDEN = 403,
         _404_NOT_FOUND = 404,
         _405_METHOD_NOT_ALLOWED = 405,
         _500_INTERNAL_SERVER_ERROR = 500,
-        _501_NOT_IMPLEMENTED = 501
+        _501_NOT_IMPLEMENTED = 501,
+        _503_SERVICE_UNAVAILABLE = 503,
     };
 
 
@@ -88,7 +90,6 @@ private:
 
         //! The originating request
         HttpRequest request_;
-
 
 
     // Private Member Functions
@@ -117,9 +118,8 @@ public:
         explicit HttpHeader(StatusCode code);
 
 
-    // Destructor
-
-        ~HttpHeader();
+    //! Destructor
+    ~HttpHeader();
 
 
     // Member Functions
@@ -128,7 +128,6 @@ public:
 
             //! Special treatment for commonly-used "Content-Type" header
             //  Avoids potential typing mistakes
-            //  If the mime-type is missing a '/', lookup from extension
             const std::string& contentType() const;
 
             //! Special treatment for commonly-used "Content-Length" header
@@ -142,12 +141,11 @@ public:
             const char *statusAsText() const;
 
 
-        // Check
-
         // Edit
 
             //! Sets commonly-used "Content-Type" header
             //  Avoids potential typing mistakes
+            //  If the mime-type is missing a '/', lookup from extension
             HttpHeader& contentType(const std::string& val);
 
             //! Sets commonly-used "Content-Length" header
@@ -166,7 +164,6 @@ public:
 
 
            // Write
-
 
             //! Output information as XML/HTML content
             //  Useful for generated error messages
@@ -191,6 +188,8 @@ public:
 
 };
 
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace markutil
 

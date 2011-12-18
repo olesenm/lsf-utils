@@ -126,7 +126,7 @@ class LsfServer
 
         if (jobs.hasError())
         {
-            head(head._500_INTERNAL_SERVER_ERROR);
+            head(head._503_SERVICE_UNAVAILABLE);
             head.print(os, true);
 
             return 1;
@@ -160,7 +160,12 @@ class LsfServer
             displayJob.reserve(jobs.size());
 
 
-            for (unsigned jobI = 0; jobI < jobs.size(); ++jobI)
+            for
+            (
+                unsigned jobI = 0;
+                jobI < jobs.size();
+                ++jobI
+            )
             {
                 const LsfUtil::JobInfoEntry& job = jobs[jobI];
 
@@ -194,7 +199,12 @@ class LsfServer
                 displayJob.push_back(jobI);
             }
 
-            for (unsigned displayI = 0; displayI < displayJob.size(); ++displayI)
+            for
+            (
+                unsigned displayI = 0;
+                displayI < displayJob.size();
+                ++displayI
+            )
             {
                 const LsfUtil::JobInfoEntry& job = jobs[displayJob[displayI]];
 
@@ -310,10 +320,10 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    int port = atoi(argv[1]);
-    std::string docRoot(argv[2]);
+    const int port = atoi(argv[1]);
+    const std::string docRoot(argv[2]);
 
-    // check port-number
+    // verify port-number
     if (port < 1 || port > 65535)
     {
         std::cerr
@@ -321,8 +331,8 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    // check if doc-root exists
-    if (!markutil::HttpServer::isDir(docRoot))
+    // verify doc-root
+    if (!markutil::HttpCore::isDir(docRoot))
     {
         std::cerr
             << "Directory does not exist: "<< docRoot << "\n";

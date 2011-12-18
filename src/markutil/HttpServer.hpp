@@ -29,8 +29,8 @@ SourceFiles
     HttpServer.cpp
 
 Notes
-    The inheritance from markutil::HttpCore is purely a convenience
-    to pass through its static methods.
+    The inheritance from markutil::HttpCore is purely a convenience to
+    pass-through its static methods.
 
 \*---------------------------------------------------------------------------*/
 
@@ -47,14 +47,6 @@ Notes
 
 namespace markutil
 {
-
-// Forward declaration of classes
-
-// Forward declaration of friend functions and operators
-//class className;
-//std::istream& operator>>(std::istream&, className&);
-//std::ostream& operator<<(std::ostream&, const className&);
-
 
 /*---------------------------------------------------------------------------*\
                          Class HttpServer Declaration
@@ -100,9 +92,6 @@ public:
         //  optionally suppress exit and handle in caller instead
         static int daemonize(const bool doNotExit=false);
 
-        //! \brief Convenience routine to check for existence of a directory
-        static bool isDir(const std::string& dir);
-
 
     // Constructors
 
@@ -116,9 +105,8 @@ public:
         HttpServer(const char* port, bool reuse = true);
 
 
-    // Destructor
-
-        virtual ~HttpServer();
+    //! Destructor
+    virtual ~HttpServer();
 
 
     // Member Functions
@@ -131,20 +119,24 @@ public:
             //! \brief The location used for the document root
             const std::string& root() const;
 
+
         // Edit
 
             //! \brief Set the value to be used for the 'Server' header
             void name(const std::string& name);
 
             //! \brief Set the location used for the document root
+            //  Resolved automatically to an absolute path
+            //  Serving the "/" directory is not permitted.
             void root(const std::string& root);
+
 
         // General Operation
 
             //! \brief Enter infinite loop, replying to incoming requests
             int run();
 
-            //! \brief Reply to the incoming request which is already embedded in the reply header
+            //! \brief Reply to the incoming request, which is already embedded in the reply header
             virtual int reply(std::ostream&, HeaderType&) const;
 
 };
@@ -156,6 +148,6 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#endif
+#endif  // MARK_HTTP_SERVER_H
 
 // ************************************************************************* //

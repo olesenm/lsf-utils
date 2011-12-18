@@ -17,14 +17,6 @@ License
     You should have received a copy of the GNU General Public License
     along with lsf-utils. If not, see <http://www.gnu.org/licenses/>.
 
-Class
-    markutil::HttpCore
-
-Description
-
-SourceFiles
-    HttpCore.cpp
-
 \*---------------------------------------------------------------------------*/
 
 #include "markutil/HttpCore.hpp"
@@ -34,6 +26,9 @@ SourceFiles
 #include <cstring>
 #include <string>
 #include <sstream>
+#include <vector>
+
+#include <sys/stat.h>
 
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -43,7 +38,7 @@ const std::string markutil::HttpCore::nullString;
 
 // * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
 
-inline const std::string hexEncode(char ch)
+inline const std::string& hexEncode(char ch)
 {
     static char hex[] = "0123456789ABCDEF";
     static std::string buf('%', 3);
@@ -121,11 +116,7 @@ const std::string& markutil::HttpCore::lookupMime(const std::string& ext)
     }
 }
 
-//
-// http://tools.ietf.org/html/rfc3986#section-2.2
-//
-// but only handle some
-//
+
 std::string& markutil::HttpCore::httpAppendUrl(std::string& url, char ch)
 {
     switch (ch)
@@ -134,12 +125,13 @@ std::string& markutil::HttpCore::httpAppendUrl(std::string& url, char ch)
             url += '+';
             break;
 
+        case '#' :   // fragment
         case '%' :   // percent must be encoded
-        case '&' :
-        case '+' :
-        case ';' :
-        case '=' :
-        case '?' :
+        case '&' :   // field separator
+        case '+' :   // encoded space
+        case ';' :   // field separator
+        case '=' :   // field=value
+        case '?' :   // query
             url += hexEncode(ch);
             break;
 
@@ -179,7 +171,7 @@ std::string& markutil::HttpCore::httpAppendUrl
 }
 
 
-std::string markutil::HttpCore::httpDecodeUri
+std::string markutil::HttpCore::httpDecodeUrl
 (
     const std::string& str,
     size_t pos,
@@ -241,6 +233,90 @@ std::string markutil::HttpCore::httpDecodeUri
 }
 
 
+std::string& markutil::HttpCore::httpNormalizePath(std::string& path)
+{
+    if (path.empty())
+    {
+        path = '/';
+        return path;
+    }
+
+    const bool trailing = *(path.rbegin()) == '/';
+
+    // gather segments
+    std::vector<std::string> segments;
+    std::string seg;
+
+    for
+    (
+        std::string::const_iterator iter = path.begin();
+        iter != path.end();
+        ++iter
+    )
+    {
+        if (*iter == '/')
+        {
+            if (!seg.empty())    // avoids duplicate slashes
+            {
+                if (seg == "..")
+                {
+                    if (!segments.empty())
+                    {
+                        segments.pop_back();
+                    }
+                }
+                else if (seg != ".")
+                {
+                    segments.push_back(seg);
+                }
+                seg.clear();
+            }
+        }
+        else
+        {
+            seg += *iter;
+        }
+    }
+
+    if (!seg.empty())    // avoids duplicate slashes
+    {
+        if (seg == "..")
+        {
+            if (!segments.empty())
+            {
+                segments.pop_back();
+            }
+        }
+        else if (seg != ".")
+        {
+            segments.push_back(seg);
+        }
+        seg.clear();
+    }
+
+
+    path = '/';
+    for
+    (
+        std::vector<std::string>::const_iterator iter = segments.begin();
+        iter != segments.end();
+        ++iter
+    )
+    {
+        path += *iter;
+        path += '/';
+    }
+
+    // final trailing slash as required
+    if (path.size() > 1 && !trailing)
+    {
+        path.resize(path.size() - 1);
+    }
+
+    return path;
+}
+
+
 std::ostream& markutil::HttpCore::xmlEscapeChars
 (
     std::ostream& os,
@@ -267,6 +343,20 @@ std::ostream& markutil::HttpCore::xmlEscapeChars
     }
 
     return os;
+}
+
+
+bool markutil::HttpCore::isDir(const std::string& name)
+{
+    struct stat sb;
+    return (::stat(name.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode));
+}
+
+
+bool markutil::HttpCore::isFile(const std::string& name)
+{
+    struct stat sb;
+    return (::stat(name.c_str(), &sb) == 0 && S_ISREG(sb.st_mode));
 }
 
 
@@ -368,15 +458,6 @@ std::ostream& markutil::HttpCore::print(std::ostream& os) const
 
 // * * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * //
 
-const std::string& markutil::HttpCore::operator[]
-(
-    const std::string& name
-) const
-{
-    return this->lookupOrDefault(name, nullString);
-}
-
-
 markutil::HttpCore& markutil::HttpCore::operator()
 (
     const std::string& name,
@@ -385,6 +466,15 @@ markutil::HttpCore& markutil::HttpCore::operator()
 {
     headers_[name] = value;
     return *this;
+}
+
+
+const std::string& markutil::HttpCore::operator[]
+(
+    const std::string& name
+) const
+{
+    return this->lookupOrDefault(name, nullString);
 }
 
 

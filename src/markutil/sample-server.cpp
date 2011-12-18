@@ -17,10 +17,12 @@ License
     You should have received a copy of the GNU General Public License
     along with lsf-utils. If not, see <http://www.gnu.org/licenses/>.
 
-Class
-    markutil::HttpCore
+Application
+    sample-server
 
 Description
+    A simple sample of using the classes to build a web-server with
+    specialized responses
 
 SourceFiles
     HttpCore.cpp
@@ -37,7 +39,7 @@ SourceFiles
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// specialization of HttpServer
+//! specialization of markutil::HttpServer
 class MyServer
 :
     public markutil::HttpServer
@@ -48,7 +50,7 @@ public:
 
     // Constructors
 
-        //- Create a server on specified port
+        //! Create a server on specified port
         MyServer(unsigned short port, const std::string& root)
         :
             ParentClass(port)
@@ -58,6 +60,7 @@ public:
         }
 
 
+        //! Specialized reply
         virtual int reply(std::ostream& os, HeaderType& head) const
         {
             RequestType& req = head.request();
@@ -79,12 +82,6 @@ public:
             // rewrite rules
             const std::string& url = req.path();
 
-            // convert no filename to index file
-            if (url == "/")
-            {
-                req.requestURI("/index.html");
-            }
-
             if (url == "/server-info")
             {
                 os  << head(head._200_OK);
@@ -97,6 +94,7 @@ public:
                         << "<title>server-info</title>"
                         << "</head><body>"
                         << "Date: " << head["Date"] << "<br />"
+                        << "Document-Root: " << this->root() << "<br />"
                         << "Server: " << this->name() << "<br />"
                         << "Request: ";
 
@@ -177,6 +175,14 @@ public:
             }
 
 
+            // rewrite rules
+            // convert trailing slash to index.html file
+            if (!req.path().empty() && *(req.path().rbegin()) == '/')
+            {
+                req.requestURI(req.path() + "index.html");
+            }
+
+
             // catch balance with standard document serving
             return this->ParentClass::reply(os, head);
         }
@@ -206,10 +212,10 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    int port = atoi(argv[1]);
-    std::string docRoot(argv[2]);
+    const int port = atoi(argv[1]);
+    const std::string docRoot(argv[2]);
 
-    // check port-number
+    // verify port-number
     if (port < 1 || port > 65535)
     {
         std::cerr
@@ -217,8 +223,8 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    // check if doc-root exists
-    if (!markutil::HttpServer::isDir(docRoot))
+    // verify doc-root
+    if (!markutil::HttpCore::isDir(docRoot))
     {
         std::cerr
             << "Directory does not exist: "<< docRoot << "\n";

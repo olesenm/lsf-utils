@@ -27,7 +27,7 @@ License
 #include <string>
 #include <fcntl.h>
 #include <signal.h>
-#include <sys/stat.h>
+#include <unistd.h>
 
 #include "fdstream/fdstream.hpp"
 
@@ -43,7 +43,6 @@ std::string markutil::HttpServer::defaultName = "HttpServer";
 // local scope
 static const unsigned BufSize = 8096;
 static char buffer[BufSize];
-
 
 
 // * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
@@ -82,12 +81,6 @@ int markutil::HttpServer::daemonize(const bool doNotExit)
     return pid;
 }
 
-
-bool markutil::HttpServer::isDir(const std::string& dir)
-{
-    struct stat sb;
-    return (::stat(dir.c_str(), &sb) == 0 && (sb.st_mode & S_IFDIR));
-}
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -180,7 +173,30 @@ void markutil::HttpServer::root(const std::string& root)
 {
     if (!root.empty())
     {
-        root_ = root;
+        if (root[0] == '/')
+        {
+            if (root.size() == 1)
+            {
+                return;   // not allowed to serve from filesystem root ever!
+            }
+            root_ = root;
+        }
+        else
+        {
+            // resolve relative -> abs path
+            char buf[255];
+            if (!::getcwd(buf, 255))
+            {
+                return;
+            }
+            root_ = buf;
+            root_ += '/';
+            root_ += root;
+        }
+
+        // this ensures we never have a trailing slash
+        root_ += "/.";
+        httpNormalizePath(root_);
     }
 }
 
@@ -243,16 +259,6 @@ int markutil::HttpServer::reply(std::ostream& os, HttpHeader& head) const
 {
     HttpRequest& req = head.request();
 
-    // rewrite rules
-    std::string url = req.path();
-
-    // convert no filename to index file
-    if (url == "/")
-    {
-        url = "/index.html";
-        req.requestURI(url);
-    }
-
     if
     (
         req.type() != req.HEAD
@@ -267,7 +273,6 @@ int markutil::HttpServer::reply(std::ostream& os, HttpHeader& head) const
     }
 
     std::string mimeType = HttpCore::lookupMime(req.ext());
-
     if (mimeType.empty())
     {
         head(head._404_NOT_FOUND);
@@ -276,9 +281,9 @@ int markutil::HttpServer::reply(std::ostream& os, HttpHeader& head) const
         return 1;
     }
 
-    std::string file = root_ + url;
 
     // open the file for reading
+    const std::string file = root_ + req.path();
     int fileFd = open(file.c_str(), O_RDONLY);
     if (fileFd == -1)
     {
@@ -287,7 +292,6 @@ int markutil::HttpServer::reply(std::ostream& os, HttpHeader& head) const
 
         return 1;
     }
-
 
     head.contentType(mimeType);
     os  << head(head._200_OK);

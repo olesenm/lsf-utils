@@ -183,10 +183,10 @@ public:
 
     // Constructors
 
-        //- Construct null
+        //! Construct null
         HttpQuery();
 
-        //- Construct with query from URL
+        //! Construct with query from URL
         HttpQuery
         (
             const std::string& str,
@@ -253,11 +253,12 @@ public:
 };
 
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
 } // End namespace markutil
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#endif  // MARK_HTTP_REQUEST_H
+#endif  // MARK_HTTP_QUERY_H
 
 // ************************************************************************* //
-

@@ -31,168 +31,6 @@ const std::string markutil::HttpQuery::nullString;
 const std::vector<std::string> markutil::HttpQuery::nullList;
 
 
-// * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
-
-markutil::HttpQuery& markutil::HttpQuery::parseUrl
-(
-    const std::string& str,
-    size_t pos,
-    size_t n
-)
-{
-    if (n == std::string::npos)
-    {
-        n = str.size() - pos;
-    }
-
-    unnamed_.clear();
-    named_.clear();
-
-    enum parseState
-    {
-        stateKEY,
-        stateVAL,
-        stateKEY_ESC,
-        stateVAL_ESC,
-        stateDONE
-    };
-
-    // current parsing state
-    parseState state = stateKEY;
-
-    std::string key, val;  // key/value pairs
-
-    int nhex  = 0;         // count of hex digits
-    int dehex = 0;         // decoded hex value
-
-    for (; n && pos < str.size(); ++pos, --n)
-    {
-        char ch = str[pos];
-
-        switch (state)
-        {
-            case stateKEY: // parsing key
-                switch (ch)
-                {
-                    case '%':
-                        dehex = nhex  = 0;
-                        state = stateKEY_ESC;
-                        break;
-
-                    case '&':  // change state
-                    case ';':  // - done with this key=val
-                        unnamed_.push_back(key);
-                        key.clear();
-                        val.clear();
-                        state = stateKEY;
-                        break;
-
-                    case '+':  // space encoding
-                        key.push_back(' ');
-                        break;
-
-                    case '=':  // change state - now parsing value
-                        state = stateVAL;
-                        break;
-
-                    default:
-                        key.push_back(ch);
-                        break;
-                }
-                break;
-
-            case stateVAL: // parsing key
-                switch (ch)
-                {
-                    case '%':
-                        dehex = nhex = 0;
-                        state = stateVAL_ESC;
-                        break;
-
-                    case '&':  // change state
-                    case ';':  // - done with this key=val
-                        named_[key].push_back(val);
-                        key.clear();
-                        val.clear();
-                        state = stateKEY;
-                        break;
-
-                    case '+':  // space encoding
-                        val.push_back(' ');
-                        break;
-
-                    default:
-                        val.push_back(ch);
-                        break;
-                }
-                break;
-
-            case stateKEY_ESC:  // %<hex><hex> within key
-            case stateVAL_ESC:  // %<hex><hex> within val
-                dehex =
-                (
-                    (dehex * 16)
-                  + (isdigit(ch) ? (ch - '0') : (toupper(ch) - 'A' + 10))
-                );
-
-                if (++nhex == 2)
-                {
-                    switch (state)
-                    {
-                        case stateKEY_ESC:
-                            key.push_back(static_cast<char>(dehex));
-                            state = stateKEY;
-                            break;
-
-                        case stateVAL_ESC:
-                            val.push_back(static_cast<char>(dehex));
-                            state = stateVAL;
-                            break;
-
-                        default:
-                            break;
-                    }
-
-                    dehex = nhex = 0;
-                }
-                break;
-
-            case stateDONE:
-                break;
-        }
-    }
-
-    // finalize cleanup
-    switch (state)
-    {
-        case stateKEY:
-        case stateKEY_ESC:
-            if (!key.empty())
-            {
-                unnamed_.push_back(key);
-            }
-            break;
-
-        case stateVAL:
-        case stateVAL_ESC:
-            named_[key].push_back(val);
-            break;
-
-        default:
-            break;
-    }
-
-    return *this;
-}
-
-
-
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 markutil::HttpQuery::HttpQuery()
@@ -335,6 +173,159 @@ void markutil::HttpQuery::clear()
 }
 
 
+markutil::HttpQuery& markutil::HttpQuery::parseUrl
+(
+    const std::string& str,
+    size_t pos,
+    size_t n
+)
+{
+    if (n == std::string::npos)
+    {
+        n = str.size() - pos;
+    }
+
+    unnamed_.clear();
+    named_.clear();
+
+    enum parseState
+    {
+        stateKEY,
+        stateVAL,
+        stateKEY_ESC,
+        stateVAL_ESC,
+        stateDONE
+    };
+
+    // current parsing state
+    parseState state = stateKEY;
+
+    std::string key, val;  // key/value pairs
+
+    int nhex  = 0;         // count of hex digits
+    int dehex = 0;         // decoded hex value
+
+    for (; n && pos < str.size(); ++pos, --n)
+    {
+        char ch = str[pos];
+
+        switch (state)
+        {
+            case stateKEY: // parsing key
+                switch (ch)
+                {
+                    case '%':
+                        dehex = nhex = 0;
+                        state = stateKEY_ESC;
+                        break;
+
+                    case '&':  // change state
+                    case ';':  // - done with this key=val
+                        unnamed_.push_back(key);
+                        key.clear();
+                        val.clear();
+                        state = stateKEY;
+                        break;
+
+                    case '+':  // space encoding
+                        key.push_back(' ');
+                        break;
+
+                    case '=':  // change state - now parsing value
+                        state = stateVAL;
+                        break;
+
+                    default:
+                        key.push_back(ch);
+                        break;
+                }
+                break;
+
+            case stateVAL: // parsing key
+                switch (ch)
+                {
+                    case '%':
+                        dehex = nhex = 0;
+                        state = stateVAL_ESC;
+                        break;
+
+                    case '&':  // change state
+                    case ';':  // - done with this key=val
+                        named_[key].push_back(val);
+                        key.clear();
+                        val.clear();
+                        state = stateKEY;
+                        break;
+
+                    case '+':  // space encoding
+                        val.push_back(' ');
+                        break;
+
+                    default:
+                        val.push_back(ch);
+                        break;
+                }
+                break;
+
+            case stateKEY_ESC:  // %<hex><hex> within key
+            case stateVAL_ESC:  // %<hex><hex> within val
+                dehex =
+                (
+                    (dehex * 16)
+                  + (isdigit(ch) ? (ch - '0') : (toupper(ch) - 'A' + 10))
+                );
+
+                if (++nhex == 2)
+                {
+                    switch (state)
+                    {
+                        case stateKEY_ESC:
+                            key.push_back(static_cast<char>(dehex));
+                            state = stateKEY;
+                            break;
+
+                        case stateVAL_ESC:
+                            val.push_back(static_cast<char>(dehex));
+                            state = stateVAL;
+                            break;
+
+                        default:
+                            break;
+                    }
+
+                    dehex = nhex = 0;
+                }
+                break;
+
+            case stateDONE:
+                break;
+        }
+    }
+
+    // finalize cleanup
+    switch (state)
+    {
+        case stateKEY:
+        case stateKEY_ESC:
+            if (!key.empty())
+            {
+                unnamed_.push_back(key);
+            }
+            break;
+
+        case stateVAL:
+        case stateVAL_ESC:
+            named_[key].push_back(val);
+            break;
+
+        default:
+            break;
+    }
+
+    return *this;
+}
+
+
 std::string markutil::HttpQuery::toString() const
 {
     std::string out;
@@ -366,7 +357,7 @@ std::string markutil::HttpQuery::toString() const
             ++iter
         )
         {
-            HttpCore::httpAppendUrl(out, name) += '=';
+            HttpCore::httpAppendUrl(out, name)  += '=';
             HttpCore::httpAppendUrl(out, *iter) += ';';
         }
     }
@@ -374,19 +365,11 @@ std::string markutil::HttpQuery::toString() const
     // truncate superfluous trailing ';'
     if (!out.empty())
     {
-        out.erase(out.end() - 1);
+        out.resize(out.size()-1);
     }
 
     return out;
 }
 
 
-// * * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * * * Friend Functions  * * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * * * Friend Operators  * * * * * * * * * * * * * //
-
-
+// ************************************************************************* //
