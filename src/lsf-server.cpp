@@ -36,11 +36,9 @@ SourceFiles
 #include <sstream>
 
 #include "markutil/HttpServer.hpp"
-#include "lsfutil/JobList.hpp"
-#include "lsfutil/JobInfoEntry.hpp"
-#include "lsfutil/OutputGE_02.hpp"
-#include "lsfutil/Rusage.hpp"
-#include <lsf/lsbatch.h>
+#include "lsfutil/LsfJobList.hpp"
+#include "lsfutil/LsfRusage.hpp"
+#include "lsfutil/OutputQstat.hpp"
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -122,7 +120,7 @@ class LsfServer
         HeaderType& head
     ) const
     {
-        LsfUtil::JobList jobs;
+        lsfutil::JobList jobs;
 
         if (jobs.hasError())
         {
@@ -167,7 +165,7 @@ class LsfServer
                 ++jobI
             )
             {
-                const LsfUtil::JobInfoEntry& job = jobs[jobI];
+                const lsfutil::LsfJobEntry& job = jobs[jobI];
 
                 // filter based on owner criterion
                 if (!userFilter.empty() && !userFilter.count(job.user))
@@ -187,7 +185,7 @@ class LsfServer
                 if (!rusageFilter.empty())
                 {
                     std::map<std::string, std::string> resReq
-                        = LsfUtil::rusageMap(job.submit.resReq);
+                        = lsfutil::rusageMap(job.submit.resReq);
 
                     if (!intersectsFilter(rusageFilter, resReq))
                     {
@@ -206,7 +204,7 @@ class LsfServer
                 ++displayI
             )
             {
-                const LsfUtil::JobInfoEntry& job = jobs[displayJob[displayI]];
+                const lsfutil::LsfJobEntry& job = jobs[displayJob[displayI]];
 
                 os  << job.cwd << " "
                     << job.relativeFilePath(job.submit.outFile) << " "
@@ -225,11 +223,11 @@ class LsfServer
         HeaderType& head
     ) const
     {
-        LsfUtil::JobList jobs;
+        lsfutil::JobList jobs;
 
         if (jobs.hasError())
         {
-            head(head._500_INTERNAL_SERVER_ERROR);
+            head(head._503_SERVICE_UNAVAILABLE);
             head.print(os, true);
 
             return 1;
@@ -240,7 +238,7 @@ class LsfServer
 
         if (head.request().type() == head.request().GET)
         {
-            LsfUtil::OutputGE_02::printXML(os, jobs);
+            lsfutil::OutputQstat::print(os, jobs);
         }
 
         return 0;

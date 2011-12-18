@@ -17,111 +17,70 @@ License
     You should have received a copy of the GNU General Public License
     along with lsf-utils. If not, see <http://www.gnu.org/licenses/>.
 
+Class
+    lsfutil::LsfCore
+
 Description
-    --
+    Core utilities required by various LSF-related elements
+
+SourceFiles
+    LsfCore.cpp
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef JobList_H
-#define JobList_H
+#ifndef LSF_CORE_H
+#define LSF_CORE_H
 
-#include <ctime>
+#include <map>
 #include <string>
-#include <vector>
-#include <iostream>
-
-#include "lsfutil/JobInfoEntry.hpp"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-namespace LsfUtil
+namespace lsfutil
 {
-
-// Forward declaration of friend functions and operators
-class JobList;
-
 
 /*---------------------------------------------------------------------------*\
-                    Class JobList Declaration
+                           Class LsfCore Declaration
 \*---------------------------------------------------------------------------*/
 
-class JobList
-:
-    private std::vector<LsfUtil::JobInfoEntry>
+class LsfCore
 {
-    // Private data
-
-        //- The last update time
-        time_t lastUpdate_;
-
-        //- The update interval
-        unsigned interval_;
-
-        //- Error
-        bool error_;
-
-        //- variables for simulating bjobs command
-        int options_;
-
 public:
-
-    // Static data members
-
 
     // Constructors
 
-        //- Construct
-        JobList(unsigned interval = 10, bool withPending = true);
+        //! Construct null
+        LsfCore();
 
 
-    //- Destructor
-    ~JobList();
+    static inline std::string makeString(const char* str)
+    {
+        return std::string(str ? str : "");
+    }
+
+    static std::string makeString(int i);
+
+    //- Remove trailing '/' from dir names
+    static bool fixDirName(std::string& name);
+
+    //- Remove leading './' from file names
+    static bool fixFileName(std::string& name);
 
 
-    // Member Functions
-
-        // Access
-
-        bool hasError() const
-        {
-            return error_;
-        }
-
-        using std::vector<LsfUtil::JobInfoEntry>::empty;
-        using std::vector<LsfUtil::JobInfoEntry>::size;
-        using std::vector<LsfUtil::JobInfoEntry>::operator[];
-
-        // Check
-
-        // Edit
-        bool update();
-
-        // Write
-
-        std::ostream& printXML(std::ostream&) const;
-
-
-    // Member Operators
-
-    // Friend Functions
-
-    // Friend Operators
-
-    // IOstream Operators
+    // parse stuff like this
+    // rusage[starcdLic=1:duration=5,starccmpLic=5:duration=5,starcdJob=6]
+    static std::map<std::string, std::string>
+    rusageMap(const std::string& resReq);
 
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace LsfUtil
+} // End namespace lsfutil
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// #include "lsfutil/JobListI.hpp"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
+#endif  // LSF_CORE_H
 
 // ************************************************************************* //

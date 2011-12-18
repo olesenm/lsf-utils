@@ -17,42 +17,55 @@ License
     You should have received a copy of the GNU General Public License
     along with lsf-utils. If not, see <http://www.gnu.org/licenses/>.
 
+Class
+    lsfutil::OutputQstat
+
 Description
-    --
+    Output job list in GridEngine qstat xml format
+
+SourceFiles
+    OutputQstat.cpp
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef OutputGE_01_H
-#define OutputGE_01_H
+#ifndef LSF_OUTPUT_QSTAT_H
+#define LSF_OUTPUT_QSTAT_H
 
 #include <iostream>
 
-#include "lsfutil/JobList.hpp"
-#include "lsfutil/JobInfoEntry.hpp"
+#include "lsfutil/LsfJobList.hpp"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-namespace LsfUtil
+namespace lsfutil
 {
 
-namespace OutputGE_01
+/*---------------------------------------------------------------------------*\
+                         Class OutputQstat Declaration
+\*---------------------------------------------------------------------------*/
+
+class OutputQstat
 {
+    // Private Member Functions
+
+        static std::ostream& print(std::ostream&, const LsfJobEntry&);
+        static std::ostream& print(std::ostream&, const LsfJobSubEntry&);
+
+public:
+
+        static std::ostream& print(std::ostream&, const LsfJobList&);
+
+
+};
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-    std::ostream& printXML(std::ostream&, const JobList&);
-    std::ostream& printXML(std::ostream&, const JobInfoEntry&);
-    std::ostream& printXML(std::ostream&, const JobSubmitEntry&);
+
+} // End namespace lsfutil
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace OutputGE_01
-
-} // End namespace LsfUtil
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
+#endif  // LSF_OUTPUT_QSTAT_H
 
 // ************************************************************************* //

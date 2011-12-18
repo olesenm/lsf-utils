@@ -19,7 +19,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "lsfutil/JobList.hpp"
+#include "lsfutil/LsfJobList.hpp"
 
 #include <ctime>
 #include <lsf/lsbatch.h>
@@ -38,9 +38,9 @@ License
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-LsfUtil::JobList::JobList(unsigned interval, bool withPending)
+lsfutil::LsfJobList::LsfJobList(unsigned interval, bool withPending)
 :
-    std::vector<LsfUtil::JobInfoEntry>(),
+    std::vector<lsfutil::LsfJobEntry>(),
     lastUpdate_(0),
     interval_(interval),
     error_(false),
@@ -58,7 +58,7 @@ LsfUtil::JobList::JobList(unsigned interval, bool withPending)
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-LsfUtil::JobList::~JobList()
+lsfutil::LsfJobList::~LsfJobList()
 {
     this->clear();
 }
@@ -66,7 +66,7 @@ LsfUtil::JobList::~JobList()
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-bool LsfUtil::JobList::update()
+bool lsfutil::LsfJobList::update()
 {
     const time_t now = time(0);
     const bool updated = (now >= lastUpdate_ + interval_);
@@ -77,7 +77,7 @@ bool LsfUtil::JobList::update()
 
         this->clear();
 
-        if (lsb_init("LsfUtil::JobList::update()") < 0)
+        if (lsb_init("lsfutil::LsfJobList::update()") < 0)
         {
             error_ = true;
         }
@@ -94,7 +94,7 @@ bool LsfUtil::JobList::update()
                     const struct jobInfoEnt *job = lsb_readjobinfo(&nJobs);
                     if (job)
                     {
-                        this->push_back(LsfUtil::JobInfoEntry(*job));
+                        this->push_back(lsfutil::LsfJobEntry(*job));
                     }
                 }
 

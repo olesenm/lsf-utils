@@ -22,40 +22,38 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef JobSubmitEntry_H
-#define JobSubmitEntry_H
+#ifndef LSF_JOB_SUB_ENTRY_H
+#define LSF_JOB_SUB_ENTRY_H
 
 #include <ctime>
 #include <string>
 #include <vector>
 #include <iostream>
 
+#include "lsfutil/LsfCore.hpp"
+
 // Forward declaration of classes
 struct submit;
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-namespace LsfUtil
+namespace lsfutil
 {
 
 // Forward declaration of friend functions and operators
-class JobSubmitEntry;
+class LsfJobSubEntry;
 
 
 /*---------------------------------------------------------------------------*\
-                    Class JobSubmitEntry Declaration
+                    Class LsfJobSubEntry Declaration
 \*---------------------------------------------------------------------------*/
 
-class JobSubmitEntry
+class LsfJobSubEntry
+:
+    public LsfCore
 {
 
     // Private Member Functions
-
-    //- Remove trailing '/' from dir names
-    bool fixDirName(std::string& name);
-
-    //- Remove leading './' from file names
-    bool fixFileName(std::string& name);
 
 
 public:
@@ -169,11 +167,11 @@ public:
     // Constructors
 
         //- Construct from submit
-        JobSubmitEntry(const submit&);
+        LsfJobSubEntry(const submit&);
 
 
     //- Destructor
-    ~JobSubmitEntry();
+    ~LsfJobSubEntry();
 
 
     // Member Functions
@@ -200,45 +198,10 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace LsfUtil
+} // End namespace lsfutil
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// #include "lsfutil/JobSubmitEntryI.hpp"
+#endif  // LSF_JOB_SUB_ENTRY_H
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
-
-// ************************************************************************* //
-
-#if 0
-//
-//
-std::string jobStatusToString(const struct jobInfoEnt& job)
-{
-    if (IS_PEND(job.status))
-    {
-        return "pending";
-    }
-    else if (IS_FINISH(job.status))
-    {
-        return "done";
-    }
-    else if (IS_SUSP(job.status))
-    {
-        return "suspended";
-    }
-    else if (IS_START(job.status))
-    {
-        return "running";
-    }
-    else
-    {
-        return "unknown";
-    }
-}
-
-
-#endif
 /* ************************************************************************* */

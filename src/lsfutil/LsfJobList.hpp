@@ -22,72 +22,97 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef JobIdentifier_H
-#define JobIdentifier_H
+#ifndef LSF_JOB_LIST_H
+#define LSF_JOB_LIST_H
 
 #include <string>
-#include <sstream>
+#include <vector>
 
-#include <lsf/lsbatch.h>
+#include "lsfutil/LsfJobEntry.hpp"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-namespace LsfUtil
+namespace lsfutil
 {
+
+// Forward declaration of friend functions and operators
+class LsfJobList;
+
 
 /*---------------------------------------------------------------------------*\
-                        Class JobIdentifier Declaration
+                         Class LsfJobList Declaration
 \*---------------------------------------------------------------------------*/
 
-class JobIdentifier
+class LsfJobList
+:
+    private std::vector<lsfutil::LsfJobEntry>
 {
+    // Private data
+
+        //! The last update time
+        time_t lastUpdate_;
+
+        //! The update interval
+        unsigned interval_;
+
+        //! Error
+        bool error_;
+
+        //! variables for simulating bjobs command
+        int options_;
+
 public:
 
-    // Public data
+    // Static data members
 
-        //- The job ID
-        int jobId;
-
-        //- The task ID. Is 0 for non-array job
-        int taskId;
-
-        //- The job owner
-        std::string user;
-
-        //- The current working directory when the job was submitted
-        std::string cwd;
-
-        //- The output filename (absolute or relative to cwd)
-        std::string outfile;
-
-        std::string jobIdString;
 
     // Constructors
 
-        //- Construct from jobInfoEnt
-        JobIdentifier(const struct jobInfoEnt&);
+        //! Construct
+        LsfJobList(unsigned interval = 10, bool withPending = true);
+
+
+    //! Destructor
+    ~LsfJobList();
 
 
     // Member Functions
 
-        inline bool hasTasks() const
+        // Access
+
+        bool hasError() const
         {
-            return taskId > 0;
+            return error_;
         }
 
-        std::string tokenJ() const;
+        using std::vector<lsfutil::LsfJobEntry>::empty;
+        using std::vector<lsfutil::LsfJobEntry>::size;
+        using std::vector<lsfutil::LsfJobEntry>::operator[];
+
+        // Check
+
+        // Edit
+        bool update();
+
+        // Write
+
+    // Member Operators
+
+    // Friend Functions
+
+    // Friend Operators
+
+    // IOstream Operators
 
 };
 
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace lsfutil
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace LsfUtil
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-
-#endif
+#endif  // LSF_JOB_LIST_H
 
 // ************************************************************************* //

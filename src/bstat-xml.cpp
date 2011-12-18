@@ -22,29 +22,18 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef Rusage_H
-#define Rusage_H
+#include <iostream>
 
-#include <map>
-#include <string>
+#include "lsfutil/LsfJobList.hpp"
+#include "lsfutil/OutputQstat.hpp"
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-namespace LsfUtil
+int main(int argc, char **argv)
 {
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+    LsfUtil::LsfJobList jobs;
+    LsfUtil::OutputQstat::print(std::cout, jobs);
 
-    std::map<std::string, std::string> rusageMap(const std::string& resReq);
+    return 0;
+}
 
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-} // End namespace LsfUtil
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-
-#endif
-
-// ************************************************************************* //
+/* ************************************************************************* */

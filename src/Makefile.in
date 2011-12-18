@@ -68,38 +68,32 @@ MKDIR           = mkdir
 
 LIBNAME = lsfutils
 LIB = lib$(LIBNAME).a
-BINS = blsof lsfutils lsf-server
+BINS = lsf-server
 
 ####### Files
 
 LIBHDRS = \
-    lsfutil/JobIdentifier.hpp \
-    lsfutil/JobInfoEntry.hpp \
-    lsfutil/JobList.hpp \
-    lsfutil/JobSubmitEntry.hpp \
-    lsfutil/OutputGE_01.hpp \
-    lsfutil/OutputGE_02.hpp \
-    lsfutil/Rusage.hpp \
+    lsfutil/LsfCore.hpp \
+    lsfutil/LsfJobEntry.hpp \
+    lsfutil/LsfJobList.hpp \
+    lsfutil/LsfJobSubEntry.hpp \
+    lsfutil/OutputQstat.hpp \
     lsfutil/XmlUtils.hpp
 
 LIBSRCS = \
-    lsfutil/JobIdentifier.cpp \
-    lsfutil/JobInfoEntry.cpp \
-    lsfutil/JobList.cpp \
-    lsfutil/JobSubmitEntry.cpp \
-    lsfutil/OutputGE_01.cpp \
-    lsfutil/OutputGE_02.cpp \
-    lsfutil/Rusage.cpp
+    lsfutil/LsfCore.cpp \
+    lsfutil/LsfJobEntry.cpp \
+    lsfutil/LsfJobList.cpp \
+    lsfutil/LsfJobSubEntry.cpp \
+    lsfutil/OutputQstat.cpp
+
 
 LIBOBJS = \
-    lsfutil/JobIdentifier.o \
-    lsfutil/JobInfoEntry.o \
-    lsfutil/JobList.o \
-    lsfutil/JobSubmitEntry.o \
-    lsfutil/OutputGE_01.o \
-    lsfutil/OutputGE_02.o \
-    lsfutil/Rusage.o
-
+    lsfutil/LsfCore.o \
+    lsfutil/LsfJobEntry.o \
+    lsfutil/LsfJobList.o \
+    lsfutil/LsfJobSubEntry.o \
+    lsfutil/OutputQstat.o
 
 LIB2SRCS = \
     markutil/HttpCore.cpp \
@@ -157,17 +151,13 @@ libmarkutil.a: $(LIB2OBJS)
 # -----------------------------------------------------------------------------
 ####### Compile
 
-blsof: blsof.o $(LIBHDRS) $(LIB)
-	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ $< \
-    $(LDFLAGS) -L$(srcdir) -l$(LIBNAME) $(LD_LSF)
-
-lsfutils: lsfutils.o $(LIBHDRS) $(LIB)
-	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ $<  \
-    $(LDFLAGS) -L$(srcdir) -l$(LIBNAME) $(LD_LSF)
-
 lsf-server: lsf-server.o $(LIBHDRS) $(LIB) libmarkutil.a
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ $< \
     $(LDFLAGS) -L$(srcdir) -l$(LIBNAME) -lmarkutil $(LD_LSF)
+
+bstat-xml: bstat-xml.o $(LIBHDRS) $(LIB)
+	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ $< \
+    $(LDFLAGS) -L$(srcdir) -l$(LIBNAME) $(LD_LSF)
 
 sample-server: markutil/sample-server.cpp libmarkutil.a
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ $< \

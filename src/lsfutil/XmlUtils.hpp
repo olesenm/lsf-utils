@@ -22,15 +22,15 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef XmlUtils_H
-#define XmlUtils_H
+#ifndef LSF_XMLUTILS_H
+#define LSF_XMLUTILS_H
 
 #include <string>
 #include <iostream>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-namespace LsfUtil
+namespace lsfutil
 {
 
 /*---------------------------------------------------------------------------*\
@@ -53,18 +53,13 @@ public:
         return str_.size();
     }
 
-    friend std::ostream& operator<<
-    (
-        std::ostream& os,
-        const XmlString& xmlstr
-    )
-    {
-        const std::string& s = xmlstr.str_;
 
+    std::ostream& print(std::ostream& os) const
+    {
         for
         (
-            std::string::const_iterator iter = s.begin();
-            iter != s.end();
+            std::string::const_iterator iter = str.begin();
+            iter != str_.end();
             ++iter
         )
         {
@@ -90,7 +85,7 @@ public:
                 default:
                     if (c < 32 || c > 127)
                     {
-                        os  << "&#" << (unsigned int)c << ';';
+                        os  << "&#" << static_cast<unsigned int>(c) << ';';
                     }
                     else
                     {
@@ -100,6 +95,12 @@ public:
         }
 
         return os;
+    }
+
+
+    friend std::ostream& operator<<(std::ostream& os, const XmlString& xmlstr)
+    {
+        return xmlstr.print(os);
     }
 
 };
@@ -122,17 +123,20 @@ public:
         val_(val)
     {}
 
-    friend std::ostream& operator<<
-    (
-        std::ostream& os,
-        const XmlTag& xmltag
-    )
+
+    std::ostream& print(std::ostream& os) const
     {
-        os  << "<" << xmltag.tag_ << ">"
-            << xmltag.val_
-            << "</" << xmltag.tag_ << ">";
+        os  << '<' << tag_ << '>'
+            << val_
+            << "</" << tag_ << '>';
 
         return os;
+    }
+
+
+    friend std::ostream& operator<<(std::ostream& os, const XmlTag& xmltag)
+    {
+        return xmltag.print(os);
     }
 };
 
@@ -170,18 +174,20 @@ public:
     }
 
 
-    friend std::ostream& operator<<
-    (
-        std::ostream& os,
-        const XmlTimeTag& xmltag
-    )
+    std::ostream& print(std::ostream& os) const
     {
-        os  << "<" << xmltag.tag_ << " epoch='"
-            << xmltag.epoch_ << "'>"
-            << xmltag.iso8601()
-            << "</" << xmltag.tag_ << ">";
+        os  << '<' << tag_ << " epoch='"
+            << epoch_ << "'>"
+            << this->iso8601()
+            << "</" << tag_ << '>';
 
         return os;
+    }
+
+
+    friend std::ostream& operator<<(std::ostream& os, const XmlTimeTag& xmltag)
+    {
+        return xmltag.print(os);
     }
 };
 
@@ -189,14 +195,10 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace LsfUtil
+} // End namespace lsfutil
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// #include "lsfutil/XmlUtilsI.hpp"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
+#endif  // LSF_XMLUTILS_H
 
 // ************************************************************************* //

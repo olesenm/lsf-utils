@@ -236,7 +236,7 @@ public:
             //! Remove all data
             void clear();
 
-            //! define query by reading read parameters from URL
+            //! define query by parsing URL (pos points after the '?')
             HttpQuery& parseUrl
             (
                 const std::string& str,

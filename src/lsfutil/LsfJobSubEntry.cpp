@@ -19,7 +19,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "lsfutil/JobSubmitEntry.hpp"
+#include "lsfutil/LsfJobSubEntry.hpp"
 
 #include <iostream>
 #include <lsf/lsbatch.h>
@@ -29,50 +29,13 @@ License
 
 // * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
 
-// inline std::string checkNullStr(const char* str)
-inline std::string makeString(const char* str)
-{
-    return std::string(str ? str : "");
-}
-
-
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-bool LsfUtil::JobSubmitEntry::fixDirName(std::string& name)
-{
-    bool changed = false;
-    while (name.size() > 1 && name[name.size()-1] == '/')
-    {
-        name.resize(name.size()-1);
-        changed = true;
-    }
-
-    return changed;
-}
-
-
-bool LsfUtil::JobSubmitEntry::fixFileName(std::string& name)
-{
-    if (name.size() > 2 && name[0] == '.' && name[1] == '/')
-    {
-        name.erase(0, 2);
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-
-}
-
-
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-LsfUtil::JobSubmitEntry::JobSubmitEntry(const struct submit& sub)
+lsfutil::LsfJobSubEntry::LsfJobSubEntry(const struct submit& sub)
 :
     jobName(sub.jobName),
     queue(sub.queue),
@@ -107,6 +70,7 @@ LsfUtil::JobSubmitEntry::JobSubmitEntry(const struct submit& sub)
     }
     else if (command.size() > 256)
     {
+        // truncate for really long commands (eg, shell files)
         command.resize(256);
     }
 
@@ -149,7 +113,7 @@ LsfUtil::JobSubmitEntry::JobSubmitEntry(const struct submit& sub)
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-LsfUtil::JobSubmitEntry::~JobSubmitEntry()
+lsfutil::LsfJobSubEntry::~LsfJobSubEntry()
 {}
 
 

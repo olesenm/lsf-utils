@@ -17,12 +17,9 @@ License
     You should have received a copy of the GNU General Public License
     along with lsf-utils. If not, see <http://www.gnu.org/licenses/>.
 
-Description
-    --
-
 \*---------------------------------------------------------------------------*/
 
-#include "lsfutil/OutputGE_02.hpp"
+#include "lsfutil/OutputQstat.hpp"
 #include "lsfutil/XmlUtils.hpp"
 
 
@@ -37,7 +34,7 @@ const char* indent = "    ";
 // * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
 
 
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * Local Functions * * * * * * * * * * * * * * //
 
 void printXmlList
 (
@@ -60,7 +57,7 @@ void printXmlList
         )
         {
             os  << indent << indent0
-                << LsfUtil::XmlTag(elemTag, *iter) << "\n";
+                << lsfutil::XmlTag(elemTag, *iter) << "\n";
         }
 
         os  << indent << "</" << listTag << ">\n";
@@ -68,54 +65,13 @@ void printXmlList
 }
 
 
-// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
 std::ostream&
-LsfUtil::OutputGE_02::printXML
+lsfutil::OutputQstat::print
 (
     std::ostream& os,
-    const LsfUtil::JobList& list
-)
-{
-    os  << "<?xml version='1.0'?>\n";
-
-    if (list.hasError())
-    {
-        os  << "<lsf-error/>\n";
-
-        return os;
-    }
-
-    os  << "<job_info"
-        << " xmlns:xsd='http://www.w3.org/2001/XMLSchema'"
-        << " type='lsf' count='" << list.size() << "'>\n";
-
-    os  << "<queue_info>\n";
-    for (unsigned jobI = 0; jobI < list.size(); ++jobI)
-    {
-        printXML(os, list[jobI]);
-    }
-
-    os
-        << "</queue_info>\n"
-        << "</job_info>\n";
-
-    return os;
-}
-
-
-std::ostream&
-LsfUtil::OutputGE_02::printXML
-(
-    std::ostream& os,
-    const LsfUtil::JobInfoEntry& job
+    const lsfutil::LsfJobEntry& job
 )
 {
     os  << indent0
@@ -258,7 +214,7 @@ LsfUtil::OutputGE_02::printXML
 // //                             * see \ref lsb_hostinfo.
 // //                             */
 
-    printXML(os, job.submit);
+    print(os, job.submit);
 
 //     // Job exit status
 //     os  << indent
@@ -381,10 +337,10 @@ LsfUtil::OutputGE_02::printXML
 
 
 std::ostream&
-LsfUtil::OutputGE_02::printXML
+lsfutil::OutputQstat::print
 (
     std::ostream& os,
-    const LsfUtil::JobSubmitEntry& sub
+    const lsfutil::LsfJobSubEntry& sub
 )
 {
 //     int     options;        /**<  <lsf/lsbatch.h> defines the flags in \ref lsb_submit_options constructed from bits.
@@ -706,6 +662,44 @@ LsfUtil::OutputGE_02::printXML
 
     return os;
 }
+
+
+
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+
+std::ostream&
+lsfutil::OutputQstat::print
+(
+    std::ostream& os,
+    const lsfutil::LsfJobList& list
+)
+{
+    os  << "<?xml version='1.0'?>\n";
+
+    if (list.hasError())
+    {
+        os  << "<lsf-error/>\n";
+
+        return os;
+    }
+
+    os  << "<job_info"
+        << " xmlns:xsd='http://www.w3.org/2001/XMLSchema'"
+        << " type='lsf' count='" << list.size() << "'>\n";
+
+    os  << "<queue_info>\n";
+    for (unsigned jobI = 0; jobI < list.size(); ++jobI)
+    {
+        print(os, list[jobI]);
+    }
+
+    os
+        << "</queue_info>\n"
+        << "</job_info>\n";
+
+    return os;
+}
+
 
 
 // * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //

@@ -22,32 +22,35 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef JobInfoEntry_H
-#define JobInfoEntry_H
+#ifndef LSF_JOB_ENTRY_H
+#define LSF_JOB_ENTRY_H
 
 #include <ctime>
 #include <string>
 #include <vector>
 
-#include "lsfutil/JobSubmitEntry.hpp"
+#include "lsfutil/LsfCore.hpp"
+#include "lsfutil/LsfJobSubEntry.hpp"
 
 // Forward declaration of classes
 struct jobInfoEnt;
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-namespace LsfUtil
+namespace lsfutil
 {
 
 // Forward declaration of friend functions and operators
-class JobInfoEntry;
+class LsfJobEntry;
 
 
 /*---------------------------------------------------------------------------*\
-                    Class JobInfoEntry Declaration
+                    Class LsfJobEntry Declaration
 \*---------------------------------------------------------------------------*/
 
-class JobInfoEntry
+class LsfJobEntry
+:
+    public LsfCore
 {
     // Private Member Functions
 
@@ -61,80 +64,80 @@ public:
     // Public data
     //
 
-        JobSubmitEntry submit;
+        LsfJobSubEntry submit;
 
-        //- The job ID that the LSF system assigned to the job
+        //! The job ID that the LSF system assigned to the job
         //  split into job-id + task-id
         int jobId;
         int taskId;
 
         std::string status;
 
-        //- The name of the user who submitted the job
+        //! The name of the user who submitted the job
         std::string user;
 
-        //- The time the job was submitted, in seconds since 00:00:00 GMT, Jan. 1, 1970.
+        //! The time the job was submitted, in seconds since 00:00:00 GMT, Jan. 1, 1970.
         time_t submitTime;
 
-        //- Time when job slots are reserved
+        //! Time when job slots are reserved
         time_t reserveTime;
 
-        //- The time that the job started running, if it has been dispatched
+        //! The time that the job started running, if it has been dispatched
         time_t startTime;
 
-        //- Job's predicted start time
+        //! Job's predicted start time
         time_t predictedStartTime;
 
-        //- The termination time of the job, if it has completed.
+        //! The termination time of the job, if it has completed.
         time_t endTime;
 
-        //- Duration time (minutes)
+        //! Duration time (minutes)
         int duration;
 
-        //- The CPU time (float) consumed by the job
+        //! The CPU time (float) consumed by the job
         float cpuTime;
 
-        //- The file creation mask when the job was submitted.
+        //! The file creation mask when the job was submitted.
         int umask;
 
-        //- The current working directory when the job was submitted.
+        //! The current working directory when the job was submitted.
         std::string cwd;
 
-        //- Home directory on submission host.
+        //! Home directory on submission host.
         std::string subHomeDir;
 
-        //- The name of the host from which the job was submitted.
+        //! The name of the host from which the job was submitted.
         std::string fromHost;
 
-        //- Job exit status
+        //! Job exit status
         int exitStatus;
 
-        //- Home directory for the job on the execution host
+        //! Home directory for the job on the execution host
         std::string execHome;
 
-        //- The rusage satisfied at job runtime
+        //! The rusage satisfied at job runtime
         std::string execRusage;
 
-        //- Host list when job starts
+        //! Host list when job starts
         std::vector<std::string> execHosts;
 
 
 
     // Constructors
 
-        //- Construct from jobInfoEnt
-        JobInfoEntry(const jobInfoEnt&);
+        //! Construct from jobInfoEnt
+        LsfJobEntry(const jobInfoEnt&);
 
 
-    //- Destructor
-    ~JobInfoEntry();
+    //! Destructor
+    ~LsfJobEntry();
 
 
     // Member Functions
 
         // Access
 
-        //- The name relative to the cwd
+        //! The name relative to the cwd
         std::string relativeFilePath(const std::string& name) const;
 
 
@@ -165,14 +168,10 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace LsfUtil
+} // End namespace lsfutil
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// #include "lsfutil/JobInfoEntryI.hpp"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
+#endif  // LSF_JOB_ENTRY_H
 
 // ************************************************************************* //

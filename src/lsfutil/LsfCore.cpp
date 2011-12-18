@@ -19,19 +19,15 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include <string>
+#include "lsfutil/LsfCore.hpp"
 #include <sstream>
-#include "lsfutil/JobIdentifier.hpp"
 
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // misc utils
-inline std::string toString(const char* str)
-{
-    return std::string(str ? str : "");
-}
+//
 
-
-inline std::string toString(int i)
+std::string lsfutil::LsfCore::makeString(int i)
 {
     if (i)
     {
@@ -46,7 +42,7 @@ inline std::string toString(int i)
 }
 
 
-bool fixDirName(std::string& name)
+bool lsfutil::LsfCore::fixDirName(std::string& name)
 {
     bool changed = false;
     while (name.size() > 1 && name[name.size()-1] == '/')
@@ -58,7 +54,8 @@ bool fixDirName(std::string& name)
     return changed;
 }
 
-bool fixFileName(std::string& name)
+
+bool lsfutil::LsfCore::fixFileName(std::string& name)
 {
     if (name.size() > 2 && name[0] == '.' && name[1] == '/')
     {
@@ -72,70 +69,51 @@ bool fixFileName(std::string& name)
 }
 
 
-std::string& replaceAll
-(
-    std::string& context,
-    const std::string& from,
-    const std::string& to
-)
+
+// parse stuff like this
+// rusage[starcdLic=1:duration=5,starccmpLic=5:duration=5,starcdJob=6]
+std::map<std::string, std::string>
+lsfutil::LsfCore::rusageMap(const std::string& resReq)
 {
-    std::string::size_type lookHere = 0;
-    std::string::size_type foundHere;
+    std::map<std::string, std::string> output;
 
-    while ((foundHere = context.find(from, lookHere)) != std::string::npos)
+    const std::string begMark = "rusage[";
+    std::string::size_type beg = resReq.find(begMark);
+    if (beg != std::string::npos)
     {
-        context.replace(foundHere, from.size(), to);
-        lookHere = foundHere + to.size();
-    }
-    return context;
-}
+        beg += begMark.size();
+        std::string::size_type end;
+        std::string::size_type equals;
 
-
-
-
-LsfUtil::JobIdentifier::JobIdentifier(const struct jobInfoEnt& job)
-:
-    jobId(LSB_ARRAY_JOBID(job.jobId)),
-    taskId(LSB_ARRAY_IDX(job.jobId)),
-    user(toString(job.user)),
-    cwd(toString(job.cwd)),
-    outfile(toString(job.submit.outFile)),
-    jobIdString()
-{
-    fixDirName(cwd);
-    fixFileName(outfile);
-
-    {
-        std::ostringstream os;
-        os  << jobId;
-        if (taskId)
+        while
+        (
+            (end = resReq.find_first_of(",:]", beg)) != std::string::npos
+         && (equals = resReq.find('=', beg)) != std::string::npos
+         && (equals < end)
+        )
         {
-            os  << "." << taskId;
+            std::string key = resReq.substr(beg, equals-beg);
+            std::string val = resReq.substr(equals, end-equals);
+            output[key] = val;
+
+            ++equals;
+
+            if (resReq[end] == ':')
+            {
+                end = resReq.find_first_of(",]", end);
+            }
+
+            if (end == std::string::npos || resReq[end] == ']')
+            {
+                break;
+            }
+
+
+            beg = end + 1;
         }
-        jobIdString = os.str();
     }
 
-    // filename relative to cwd whenever possible
-    if
-    (
-        outfile.size() > cwd.size()+1
-     && outfile[cwd.size()] == '/'
-     && outfile.substr(0, cwd.size()) == cwd
-    )
-    {
-        outfile.erase(0, cwd.size()+1);
-    }
-
-
-    // replace %J with jobId and %I with taskId
-    replaceAll(outfile, "%J", toString(jobId));
-    replaceAll(outfile, "%I", toString(taskId));
-}
-
-
-std::string LsfUtil::JobIdentifier::tokenJ() const
-{
-    return toString(jobId);
+    return output;
 }
 
 
