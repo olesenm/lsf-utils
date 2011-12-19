@@ -152,10 +152,33 @@ class LsfServer
                 userFilter.clear();
             }
 
+            // display pending jobs too?
+            bool withPending = false;
+            if (query.foundUnnamed("wait"))
+            {
+                withPending = true;
+            }
+            else if (query.found("wait"))
+            {
+                const QueryType::string_list& list = query.param("wait");
+                for
+                (
+                    QueryType::string_list::const_iterator iter = list.begin();
+                    iter != list.end();
+                    ++iter
+                )
+                {
+                    if (*iter == "true")
+                    {
+                        withPending = true;
+                        break;
+                    }
+                }
+            }
+
             // filter job-list based on query parameters
             std::vector<int> displayJob;
             displayJob.reserve(jobs.size());
-
 
             for
             (
@@ -193,7 +216,10 @@ class LsfServer
                 }
 
                 // we got this far, keep it
-                displayJob.push_back(jobI);
+                if (job.isRunning() || (withPending && job.isPending()))
+                {
+                    displayJob.push_back(jobI);
+                }
             }
 
             for

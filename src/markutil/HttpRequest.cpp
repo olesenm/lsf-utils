@@ -106,6 +106,22 @@ markutil::HttpRequest::HttpRequest()
 {}
 
 
+markutil::HttpRequest::HttpRequest
+(
+    const std::string& method,
+    const std::string& url
+)
+:
+    type_(lookupMethod(method)),
+    method_(method),
+    path_(),
+    query_(),
+    httpver_()
+{
+    this->requestURI(url);
+}
+
+
 markutil::HttpRequest::HttpRequest(std::istream& is)
 :
     type_(UNKNOWN),

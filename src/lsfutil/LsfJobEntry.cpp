@@ -31,24 +31,21 @@ License
 
 // * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
 
-std::string lsfutil::LsfJobEntry::jobStatusToString
-(
-    const struct jobInfoEnt& job
-)
+std::string lsfutil::LsfJobEntry::jobStatusToString(int stat)
 {
-    if (IS_PEND(job.status))
+    if (IS_PEND(stat))
     {
         return "pending";
     }
-    else if (IS_FINISH(job.status))
+    else if (IS_FINISH(stat))
     {
         return "done";
     }
-    else if (IS_SUSP(job.status))
+    else if (IS_SUSP(stat))
     {
         return "suspended";
     }
-    else if (IS_START(job.status))
+    else if (IS_START(stat))
     {
         return "running";
     }
@@ -89,7 +86,7 @@ lsfutil::LsfJobEntry::LsfJobEntry(const struct jobInfoEnt& job)
     execRusage(makeString(job.execRusage)),
     execHosts()
 {
-    status = jobStatusToString(job);
+    status = jobStatusToString(job.status);
     fixDirName(cwd);
 
     if (job.jStartNumExHosts)
@@ -102,7 +99,6 @@ lsfutil::LsfJobEntry::LsfJobEntry(const struct jobInfoEnt& job)
             execHosts.push_back((job.jStartExHosts)[i]);
         }
     }
-
 }
 
 
@@ -140,6 +136,30 @@ std::string lsfutil::LsfJobEntry::relativeFilePath
 std::string lsfutil::LsfJobEntry::tokenJ() const
 {
     return makeString(jobId);
+}
+
+
+bool lsfutil::LsfJobEntry::isPending() const
+{
+    return status == "pending";
+}
+
+
+bool lsfutil::LsfJobEntry::isDone() const
+{
+    return status == "done";
+}
+
+
+bool lsfutil::LsfJobEntry::isSuspend() const
+{
+    return status == "suspended";
+}
+
+
+bool lsfutil::LsfJobEntry::isRunning() const
+{
+    return status == "running";
 }
 
 

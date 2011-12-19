@@ -153,7 +153,7 @@ libmarkutil.a: $(LIB2OBJS)
 
 lsf-direct: lsf-direct.o $(LIBHDRS) $(LIB)
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ $< \
-    $(LDFLAGS) -L$(srcdir) -l$(LIBNAME) $(LD_LSF)
+    $(LDFLAGS) -L$(srcdir) -l$(LIBNAME) -lmarkutil $(LD_LSF)
 
 lsf-server: lsf-server.o $(LIBHDRS) $(LIB) libmarkutil.a
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ $< \

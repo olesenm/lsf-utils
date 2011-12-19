@@ -28,6 +28,7 @@ Description
 #include <ctime>
 #include <string>
 #include <vector>
+#include <iostream>
 
 #include "lsfutil/LsfCore.hpp"
 #include "lsfutil/LsfJobSubEntry.hpp"
@@ -52,12 +53,20 @@ class LsfJobEntry
 :
     public LsfCore
 {
+    // Private Data
+
+
     // Private Member Functions
 
-        static std::string jobStatusToString(const struct jobInfoEnt&);
+        static std::string jobStatusToString(int);
+
+        //- Disallow default bitwise copy construct
+        LsfJobEntry(const LsfJobEntry&);
+
+        //- Disallow default bitwise assignment
+        LsfJobEntry& operator=(const LsfJobEntry&);
 
 public:
-
     // Static data members
 
 
@@ -149,6 +158,11 @@ public:
         }
 
         std::string tokenJ() const;
+
+        bool isPending() const;
+        bool isDone() const;
+        bool isSuspend() const;
+        bool isRunning() const;
 
         // Edit
 

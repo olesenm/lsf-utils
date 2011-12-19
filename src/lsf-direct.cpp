@@ -26,6 +26,7 @@ Description
 
 #include "lsfutil/LsfJobList.hpp"
 #include "lsfutil/OutputQstat.hpp"
+#include "markutil/HttpRequest.hpp"
 
 int main(int argc, char **argv)
 {
@@ -34,7 +35,9 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    std::string url(argv[1]);
+    markutil::HttpRequest req("GET", argv[1]);
+
+    std::string url = req.path();
 
     if (url == "/blsof")
     {

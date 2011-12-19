@@ -100,6 +100,9 @@ public:
         //! Construct null, the request will be invalid
         HttpRequest();
 
+        //! Construct a new request, can also change requestURI later
+        HttpRequest(const std::string& method, const std::string& url);
+
         //! Construct request by reading from an input stream
         //  reads until a blank line
         HttpRequest(std::istream&);
