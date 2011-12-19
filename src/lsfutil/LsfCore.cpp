@@ -117,4 +117,12 @@ lsfutil::LsfCore::rusageMap(const std::string& resReq)
 }
 
 
+lsfutil::LsfCore::LsfCore()
+{}
+
+lsfutil::LsfCore::~LsfCore()
+{}
+
+
+
 /* ************************************************************************* */

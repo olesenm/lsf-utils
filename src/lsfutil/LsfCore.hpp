@@ -52,6 +52,9 @@ public:
         //! Construct null
         LsfCore();
 
+        //! Destructor
+        ~LsfCore();
+
 
     static inline std::string makeString(const char* str)
     {

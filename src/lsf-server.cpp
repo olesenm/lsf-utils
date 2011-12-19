@@ -37,7 +37,6 @@ SourceFiles
 
 #include "markutil/HttpServer.hpp"
 #include "lsfutil/LsfJobList.hpp"
-#include "lsfutil/LsfRusage.hpp"
 #include "lsfutil/OutputQstat.hpp"
 
 
@@ -120,7 +119,7 @@ class LsfServer
         HeaderType& head
     ) const
     {
-        lsfutil::JobList jobs;
+        lsfutil::LsfJobList jobs;
 
         if (jobs.hasError())
         {
@@ -185,7 +184,7 @@ class LsfServer
                 if (!rusageFilter.empty())
                 {
                     std::map<std::string, std::string> resReq
-                        = lsfutil::rusageMap(job.submit.resReq);
+                        = lsfutil::LsfCore::rusageMap(job.submit.resReq);
 
                     if (!intersectsFilter(rusageFilter, resReq))
                     {
@@ -223,7 +222,7 @@ class LsfServer
         HeaderType& head
     ) const
     {
-        lsfutil::JobList jobs;
+        lsfutil::LsfJobList jobs;
 
         if (jobs.hasError())
         {

@@ -68,7 +68,7 @@ MKDIR           = mkdir
 
 LIBNAME = lsfutils
 LIB = lib$(LIBNAME).a
-BINS = lsf-server
+BINS = lsf-direct lsf-server
 
 ####### Files
 
@@ -151,13 +151,13 @@ libmarkutil.a: $(LIB2OBJS)
 # -----------------------------------------------------------------------------
 ####### Compile
 
+lsf-direct: lsf-direct.o $(LIBHDRS) $(LIB)
+	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ $< \
+    $(LDFLAGS) -L$(srcdir) -l$(LIBNAME) $(LD_LSF)
+
 lsf-server: lsf-server.o $(LIBHDRS) $(LIB) libmarkutil.a
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ $< \
     $(LDFLAGS) -L$(srcdir) -l$(LIBNAME) -lmarkutil $(LD_LSF)
-
-bstat-xml: bstat-xml.o $(LIBHDRS) $(LIB)
-	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ $< \
-    $(LDFLAGS) -L$(srcdir) -l$(LIBNAME) $(LD_LSF)
 
 sample-server: markutil/sample-server.cpp libmarkutil.a
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ $< \

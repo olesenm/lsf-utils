@@ -29,9 +29,38 @@ Description
 
 int main(int argc, char **argv)
 {
+    if (argc == 1)
+    {
+        return 1;
+    }
 
-    LsfUtil::LsfJobList jobs;
-    LsfUtil::OutputQstat::print(std::cout, jobs);
+    std::string url(argv[1]);
+
+    if (url == "/blsof")
+    {
+        lsfutil::LsfJobList jobs;
+
+        for (unsigned jobI = 0; jobI < jobs.size(); ++jobI)
+        {
+            const lsfutil::LsfJobEntry& job = jobs[jobI];
+
+            std::cout
+                << job.cwd << " "
+                << job.relativeFilePath(job.submit.outFile) << " "
+                << job.jobId << "\n";
+        }
+    }
+    else if (url == "/qstat.xml")
+    {
+        lsfutil::LsfJobList jobs;
+        lsfutil::OutputQstat::print(std::cout, jobs);
+    }
+    else
+    {
+        std::cerr
+            << "no handler for " << url << "\n";
+    }
+
 
     return 0;
 }

@@ -58,7 +58,7 @@ public:
     {
         for
         (
-            std::string::const_iterator iter = str.begin();
+            std::string::const_iterator iter = str_.begin();
             iter != str_.end();
             ++iter
         )
