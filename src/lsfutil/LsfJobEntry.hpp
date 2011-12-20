@@ -60,12 +60,6 @@ class LsfJobEntry
 
         static std::string jobStatusToString(int);
 
-        //- Disallow default bitwise copy construct
-        LsfJobEntry(const LsfJobEntry&);
-
-        //- Disallow default bitwise assignment
-        LsfJobEntry& operator=(const LsfJobEntry&);
-
 public:
     // Static data members
 
@@ -131,7 +125,6 @@ public:
         std::vector<std::string> execHosts;
 
 
-
     // Constructors
 
         //! Construct from jobInfoEnt
@@ -167,6 +160,8 @@ public:
         // Edit
 
         // Write
+
+        std::ostream& dump(std::ostream&) const;
 
     // Member Operators
 

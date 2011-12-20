@@ -69,6 +69,7 @@ lsfutil::LsfJobEntry::LsfJobEntry(const struct jobInfoEnt& job)
     submit(job.submit),
     jobId(LSB_ARRAY_JOBID(job.jobId)),
     taskId(LSB_ARRAY_IDX(job.jobId)),
+    status(jobStatusToString(job.status)),
     user(makeString(job.user)),
     submitTime(job.submitTime),
     reserveTime(job.reserveTime),
@@ -86,7 +87,6 @@ lsfutil::LsfJobEntry::LsfJobEntry(const struct jobInfoEnt& job)
     execRusage(makeString(job.execRusage)),
     execHosts()
 {
-    status = jobStatusToString(job.status);
     fixDirName(cwd);
 
     if (job.jStartNumExHosts)
@@ -99,6 +99,13 @@ lsfutil::LsfJobEntry::LsfJobEntry(const struct jobInfoEnt& job)
             execHosts.push_back((job.jStartExHosts)[i]);
         }
     }
+
+    // replace %J with jobId and %I with taskId immediately
+    replaceAll(submit.outFile, "%J", makeString(jobId));
+    replaceAll(submit.outFile, "%I", makeString(taskId));
+
+    replaceAll(submit.errFile, "%J", makeString(jobId));
+    replaceAll(submit.errFile, "%I", makeString(taskId));
 }
 
 
@@ -162,6 +169,43 @@ bool lsfutil::LsfJobEntry::isRunning() const
     return status == "running";
 }
 
+
+std::ostream& lsfutil::LsfJobEntry::dump(std::ostream& os) const
+{
+    os  << "jobId: " << jobId << "\n";
+    os  << "taskId: " << taskId << "\n";
+    os  << "status: " << status << "\n";
+    submit.dump(os);
+
+    os  << "user: " << user << "\n";
+    os  << "submitTime: " << submitTime << "\n";
+    os  << "reserveTime: " << reserveTime << "\n";
+    os  << "startTime: " << startTime << "\n";
+    os  << "predictedStartTime: " << predictedStartTime << "\n";
+    os  << "endTime: " << endTime << "\n";
+    os  << "duration: " << duration << "\n";
+    os  << "cpuTime: " << cpuTime << "\n";
+    os  << "umask: " << umask << "\n";
+    os  << "job-cwd: " << cwd << "\n";
+    os  << "subHomeDir: " << subHomeDir << "\n";
+    os  << "fromHost: " << fromHost << "\n";
+    os  << "execHome: " << execHome << "\n";
+    os  << "execRusage: " << execRusage << "\n";
+
+    os  << "execHosts: (";
+    for (unsigned i=0; i << execHosts.size(); ++i)
+    {
+        if (i)
+        {
+            os  << ' ';
+        }
+        os  << execHosts[i];
+    }
+    os  << ")\n";
+
+    os  << "exitStatus: " << exitStatus << "\n";
+    return os;
+}
 
 // * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
 

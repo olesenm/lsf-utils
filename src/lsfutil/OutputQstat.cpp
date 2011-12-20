@@ -25,44 +25,11 @@ License
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-// local scope
-
-const char* indent0 = "  ";
-const char* indent = "    ";
-
 
 // * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
 
 
 // * * * * * * * * * * * * * * * Local Functions * * * * * * * * * * * * * * //
-
-void printXmlList
-(
-    std::ostream& os,
-    const std::vector<std::string>& list,
-    const char *listTag,
-    const char *elemTag
-)
-{
-    if (list.size())
-    {
-        os  << indent << "<" << listTag
-            <<" count='" << list.size() << "'>\n";
-
-        for
-        (
-            std::vector<std::string>::const_iterator iter = list.begin();
-            iter != list.end();
-            ++iter
-        )
-        {
-            os  << indent << indent0
-                << lsfutil::XmlTag(elemTag, *iter) << "\n";
-        }
-
-        os  << indent << "</" << listTag << ">\n";
-    }
-}
 
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
@@ -74,23 +41,23 @@ lsfutil::OutputQstat::print
     const lsfutil::LsfJobEntry& job
 )
 {
-    os  << indent0
+    os  << xml::indent0
         << "<job_list type='lsf'"
         << " state='" << job.status << "'>\n";
 
-    os  << indent << "<JB_job_number>"
-        << job.jobId << "</JB_job_number>>\n";
+    os  << xml::indent << "<JB_job_number>"
+        << job.jobId << "</JB_job_number>\n";
 
     if (job.taskId)
     {
-        os  << indent << "<TODOtask-id>"
-            << job.taskId << "</TODOtask-id>>\n";
+        os  << xml::indent << "<TODOtask-id>"
+            << job.taskId << "</TODOtask-id>\n";
     }
 
     // The name of the user who submitted the job
-    os  << indent << XmlTag("JB_owner", job.user) << "\n";
+    os  << xml::indent << xml::Tag("JB_owner", job.user) << "\n";
 
-    os  << indent
+    os  << xml::indent
         << "<state>" << job.status[0] << "</state>\n";
 
 
@@ -117,36 +84,36 @@ lsfutil::OutputQstat::print
     // The time the job was submitted, in seconds since 00:00:00 GMT, Jan. 1, 1970.
     if (job.submitTime)
     {
-        os  << indent
-            << XmlTimeTag("JB_submission_time", job.submitTime) << "\n";
+        os  << xml::indent
+            << xml::TimeTag("JB_submission_time", job.submitTime) << "\n";
     }
 
 //     // Time when job slots are reserved
 //     if (job.reserveTime)
 //     {
-//         os  << indent
-//             << XmlTimeTag("reserve-time", job.reserveTime) << "\n";
+//         os  << xml::indent
+//             << xml::TimeTag("reserve-time", job.reserveTime) << "\n";
 //     }
 
     // The time that the job started running, if it has been dispatched
     if (job.startTime)
     {
-        os  << indent
-            << XmlTimeTag("JAT_start_time", job.startTime) << "\n";
+        os  << xml::indent
+            << xml::TimeTag("JAT_start_time", job.startTime) << "\n";
     }
 
 //     // Job's predicted start time
 //     if (job.predictedStartTime)
 //     {
-//         os  << indent
-//             << XmlTimeTag("predicted-start-time", job.predictedStartTime) << "\n";
+//         os  << xml::indent
+//             << xml::TimeTag("predicted-start-time", job.predictedStartTime) << "\n";
 //     }
 //
 //     // The termination time of the job, if it has completed.
 //     if (job.endTime)
 //     {
-//         os  << indent
-//             << XmlTimeTag("end-time", job.endTime) << "\n";
+//         os  << xml::indent
+//             << xml::TimeTag("end-time", job.endTime) << "\n";
 //     }
 //     time_t  lastEvent;     /**< Last time event */
 //     time_t  nextEvent;     /**< Next time event */
@@ -154,7 +121,7 @@ lsfutil::OutputQstat::print
 //     // Duration time (minutes)
 //     if (job.duration)
 //     {
-//         os  << indent
+//         os  << xml::indent
 //             << "<duration units='min'>"
 //             << job.duration
 //             << "</duration>\n";
@@ -163,29 +130,29 @@ lsfutil::OutputQstat::print
 //     // (float) CPU time consumed by the job
 //     if (job.cpuTime)
 //     {
-//         os  << indent
+//         os  << xml::indent
 //             << "<cpu-time units='sec'>"
 //             << job.cpuTime
 //             << "</cpu-time>\n";
 //     }
 //
 //     // The file creation mask when the job was submitted.
-//     os  << indent
+//     os  << xml::indent
 //         << "<umask>"
 //         << std::oct << job.umask << std::dec
 //         << "</umask>\n";
 
     // The current working directory when the job was submitted.
-    os  << indent
-        << XmlTag("JB_cwd", job.cwd) << "\n";
+    os  << xml::indent
+        << xml::Tag("JB_cwd", job.cwd) << "\n";
 
 //     // Home directory on submission host.
-//     os  << indent
-//         << XmlTag("submission-home", job.subHomeDir) << "\n";
+//     os  << xml::indent
+//         << xml::Tag("submission-home", job.subHomeDir) << "\n";
 //
 //     // The name of the host from which the job was submitted.
-//     os  << indent
-//         << XmlTag("submission-host", job.fromHost) << "\n";
+//     os  << xml::indent
+//         << xml::Tag("submission-host", job.fromHost) << "\n";
 //
 // //     char    **exHosts;     /**< The array of names of hosts on which the job
 // //                             * executes. */
@@ -217,7 +184,7 @@ lsfutil::OutputQstat::print
     print(os, job.submit);
 
 //     // Job exit status
-//     os  << indent
+//     os  << xml::indent
 //         << "<exit-code>"
 //         << job.exitStatus
 //         << "<exit-code>\n";
@@ -225,8 +192,8 @@ lsfutil::OutputQstat::print
 //     int     execUid;        /**< Mapped UNIX user ID on the execution host.*/
 
     // Home directory for the job on the execution host
-//     os  << indent
-//         << XmlTag("exec-home", job.execHome) << "\n";
+//     os  << xml::indent
+//         << xml::Tag("exec-home", job.execHome) << "\n";
 
 //     char    *execCwd;       /**< Current working directory for the job on the
 //                              * execution host.*/
@@ -274,8 +241,8 @@ lsfutil::OutputQstat::print
 //     // The rusage satisfied at job runtime
 //     if (job.execRusage.size())
 //     {
-//         os  << indent
-//             << XmlTag("exec-rusage", job.execRusage) << "\n";
+//         os  << xml::indent
+//             << xml::Tag("exec-rusage", job.execRusage) << "\n";
 //     }
 
 #if 0
@@ -283,7 +250,7 @@ lsfutil::OutputQstat::print
 //     time_t rsvInActive;     /**< The time when advance reservation expired or was deleted. */
 
     // The licenses reported from License Scheduler.
-    printXmlList
+    xml::printList
     (
         os,
         job.licenseNames,
@@ -307,7 +274,7 @@ lsfutil::OutputQstat::print
 //     time_t resizeReqTime;   /**< Time when pending request was issued */
 
     // hosts when job starts
-//     printXmlList
+//     xml::printList
 //     (
 //         os,
 //         job.execHosts,
@@ -330,7 +297,7 @@ lsfutil::OutputQstat::print
 //     <grid:total-cpu-usage>0.0</grid:total-cpu-usage>
 //     <grid:exit-code>0</grid:exit-code>
 
-    os  << indent0 << "</job_list>\n";
+    os  << xml::indent0 << "</job_list>\n";
 
     return os;
 }
@@ -352,24 +319,24 @@ lsfutil::OutputQstat::print
     // The job name. If jobName is NULL, command is used as the job name.
     if (sub.jobName.size())
     {
-        os  << indent
-            << XmlTag("JB_name", sub.jobName) << "\n"
-            << indent
-            << XmlTag("full_job_name", sub.jobName) << "\n";
+        os  << xml::indent
+            << xml::Tag("JB_name", sub.jobName) << "\n"
+            << xml::indent
+            << xml::Tag("full_job_name", sub.jobName) << "\n";
     }
 
     // Submit the job to this queue. If queue is NULL, submit the job
     // to a system default queue.
     if (sub.queue.size())
     {
-        os  << indent
-            << XmlTag("queue", sub.queue) << "\n";
+        os  << xml::indent
+            << xml::Tag("queue", sub.queue) << "\n";
     }
 
     // The number of invoker specified candidate hosts for running
     // the job. If numAskedHosts is 0, all qualified hosts will be
     // considered
-    printXmlList
+    xml::printList
     (
         os,
         sub.askedHosts,
@@ -385,8 +352,8 @@ lsfutil::OutputQstat::print
     // is to run on host() of the same type.
     if (sub.resReq.size())
     {
-//         os  << indent
-//             << XmlTag("resource-request", sub.resReq) << "\n";
+//         os  << xml::indent
+//             << xml::Tag("resource-request", sub.resReq) << "\n";
 
         // parse stuff like this
         // rusage[starcdLic=1:duration=5,starccmpLic=5:duration=5,starcdJob=6]
@@ -408,7 +375,7 @@ lsfutil::OutputQstat::print
              && (equals < end)
             )
             {
-                os  << indent
+                os  << xml::indent
                     << "<hard_request name='"
                     << resReq.substr(beg, equals-beg)
                     << "' resource_contribution='0.0'>";
@@ -449,23 +416,23 @@ lsfutil::OutputQstat::print
     // The initial number of processors needed by a (parallel) job.
     // The default is 1.
     {
-        os  << indent << "<slots>"
+        os  << xml::indent << "<slots>"
             << sub.numProcessors << "</slots>\n";
     }
 
     // The job dependency condition.
     if (sub.dependCond.size())
     {
-        os  << indent
-            << XmlTag("depend-condition", sub.dependCond) << "\n";
+        os  << xml::indent
+            << xml::Tag("depend-condition", sub.dependCond) << "\n";
     }
 
     // Time event string
 #if 0
     if (sub.timeEvent.size())
     {
-        os  << indent
-            << XmlTag("time-event", sub.timeEvent) << "\n";
+        os  << xml::indent
+            << xml::Tag("time-event", sub.timeEvent) << "\n";
     }
 #endif
 
@@ -475,8 +442,8 @@ lsfutil::OutputQstat::print
     // beginTime is 0, start the job as soon as possible.
     if (sub.beginTime)
     {
-        os  << indent
-            << XmlTimeTag("begin-time", sub.beginTime) << "\n";
+        os  << xml::indent
+            << xml::TimeTag("begin-time", sub.beginTime) << "\n";
     }
 
     // The job termination deadline. If the job is still running at
@@ -487,8 +454,8 @@ lsfutil::OutputQstat::print
     // reaches a resource limit.
     if (sub.termTime)
     {
-        os  << indent
-            << XmlTimeTag("term-time", sub.termTime) << "\n";
+        os  << xml::indent
+            << xml::TimeTag("term-time", sub.termTime) << "\n";
     }
 
 //     int     sigValue;
@@ -504,37 +471,37 @@ lsfutil::OutputQstat::print
     // If inFile is NULL, use /dev/null as the default.
     if (sub.inFile.size())
     {
-        os  << indent
-            << XmlTag("input-file", sub.inFile) << "\n";
+        os  << xml::indent
+            << xml::Tag("input-file", sub.inFile) << "\n";
     }
 
     // The path name of the job's standard output file.
     // If outFile is NULL, the job's output will be mailed to the submitter
     if (sub.outFile.size())
     {
-        os  << indent
-            << XmlTag("output-file", sub.outFile) << "\n";
+        os  << xml::indent
+            << xml::Tag("output-file", sub.outFile) << "\n";
     }
 
     // The path name of the job's standard error output file.
     // If errFile is NULL, the standard error output will be merged with the standard output of the job.
     if (sub.errFile.size())
     {
-        os  << indent
-            << XmlTag("error-file", sub.errFile) << "\n";
+        os  << xml::indent
+            << xml::Tag("error-file", sub.errFile) << "\n";
     }
 
     // When submitting a job, the command line of the job.
     // When modifying a job, a mandatory parameter that should be set to jobId in string format.
     if (sub.command.size() && (sub.command)[0] == '#')
     {
-        os  << indent
-            << XmlTag("command", "STDIN") << "\n";
+        os  << xml::indent
+            << xml::Tag("command", "STDIN") << "\n";
     }
     else
     {
-        os  << indent
-            << XmlTag("command", sub.command) << "\n";
+        os  << xml::indent
+            << xml::Tag("command", sub.command) << "\n";
     }
 
 //     char    *newCommand;    /**< New command line for bmod. */
@@ -549,8 +516,8 @@ lsfutil::OutputQstat::print
     //
     if (sub.chkpntDir.size())
     {
-        os  << indent
-            << XmlTag("checkpoint-dir", sub.chkpntDir) << "\n";
+        os  << xml::indent
+            << xml::Tag("checkpoint-dir", sub.chkpntDir) << "\n";
     }
 
 //     int     nxf;            /**< The number of files to transfer. */
@@ -561,15 +528,15 @@ lsfutil::OutputQstat::print
     // The job pre-execution command
     if (sub.preExecCmd.size())
     {
-        os  << indent
-            << XmlTag("pre-exec-cmd", sub.preExecCmd) << "\n";
+        os  << xml::indent
+            << xml::Tag("pre-exec-cmd", sub.preExecCmd) << "\n";
     }
 
     // The user that results are mailed to
     if (sub.mailUser.size())
     {
-        os  << indent
-            << XmlTag("mail-user", sub.mailUser) << "\n";
+        os  << xml::indent
+            << xml::Tag("mail-user", sub.mailUser) << "\n";
     }
 
 //     int    delOptions;      /**< Delete options in options field. */
@@ -578,8 +545,8 @@ lsfutil::OutputQstat::print
     // The name of the project the job will be charged to.
     if (sub.projectName.size())
     {
-        os  << indent
-            << XmlTag("project", sub.projectName) << "\n";
+        os  << xml::indent
+            << xml::Tag("project", sub.projectName) << "\n";
     }
 
 //     int    maxNumProcessors; /**< Maximum number of processors required
@@ -589,16 +556,16 @@ lsfutil::OutputQstat::print
     // environment for the job (see the -L option of bsub).
     if (sub.loginShell.size())
     {
-        os  << indent
-            << XmlTag("login-shell", sub.loginShell) << "\n";
+        os  << xml::indent
+            << xml::Tag("login-shell", sub.loginShell) << "\n";
     }
 
     // The name of the LSF user group (see lsb.users) to which the
     // job will belong. (see the -G option of bsub)
     if (sub.userGroup.size())
     {
-        os  << indent
-            << XmlTag("user-group", sub.userGroup) << "\n";
+        os  << xml::indent
+            << xml::Tag("user-group", sub.userGroup) << "\n";
     }
 
 //     int    options3;        /**< Extended bitwise inclusive OR of options flags in \ref lsb_submit_options3. */
@@ -607,8 +574,8 @@ lsfutil::OutputQstat::print
     // Application profile under which the job runs.
     if (sub.app.size())
     {
-        os  << indent
-            << XmlTag("application-profile-group", sub.app) << "\n";
+        os  << xml::indent
+            << xml::Tag("application-profile-group", sub.app) << "\n";
     }
 
 //     int  jsdlFlag;          /**< -1 if no -jsdl and -jsdl_strict options.
@@ -624,15 +591,15 @@ lsfutil::OutputQstat::print
     // Post-execution commands specified by -Ep option of bsub and bmod.
     if (sub.postExecCmd.size())
     {
-        os  << indent
-            << XmlTag("post-exec-cmd", sub.postExecCmd) << "\n";
+        os  << xml::indent
+            << xml::Tag("post-exec-cmd", sub.postExecCmd) << "\n";
     }
 
     // Current working directory specified by -cwd option of bsub and bmod.
     if (sub.cwd.size())
     {
-        os  << indent
-            << XmlTag("current-working-directory", sub.cwd) << "\n";
+        os  << xml::indent
+            << xml::Tag("current-working-directory", sub.cwd) << "\n";
     }
 //     int      runtimeEstimation;   /**< Runtime estimate specified by -We
 //                                    * option of bsub and bmod.  */
@@ -647,15 +614,15 @@ lsfutil::OutputQstat::print
     // execution host when a resize request has been satisfied.
     if (sub.notifyCmd.size())
     {
-        os  << indent
-            << XmlTag("notify-cmd", sub.notifyCmd) << "\n";
+        os  << xml::indent
+            << xml::Tag("notify-cmd", sub.notifyCmd) << "\n";
     }
 
     // Job description.
     if (sub.jobDescription.size())
     {
-        os  << indent
-            << XmlTag("job-description", sub.jobDescription) << "\n";
+        os  << xml::indent
+            << xml::Tag("job-description", sub.jobDescription) << "\n";
     }
 
     // struct submit_ext *submitExt; /**< For new options in future  */

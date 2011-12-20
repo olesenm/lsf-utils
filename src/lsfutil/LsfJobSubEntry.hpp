@@ -69,9 +69,6 @@ public:
         // to a system default queue.
         std::string queue;
 
-        //- List of specified candidate hosts.
-        std::vector<std::string> askedHosts;
-
         //- The initial number of processors needed by a (parallel) job.
         //  The default is 1.
         int numProcessors;
@@ -163,6 +160,9 @@ public:
         //- Resource Request.
         std::string resReq;
 
+        //- List of specified candidate hosts.
+        std::vector<std::string> askedHosts;
+
 
     // Constructors
 
@@ -184,6 +184,7 @@ public:
 
         // Write
 
+        std::ostream& dump(std::ostream&) const;
 
     // Member Operators
 

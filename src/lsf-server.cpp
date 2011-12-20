@@ -38,6 +38,7 @@ SourceFiles
 #include "markutil/HttpServer.hpp"
 #include "lsfutil/LsfJobList.hpp"
 #include "lsfutil/OutputQstat.hpp"
+#include "lsfutil/OutputQstatJ.hpp"
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -49,7 +50,7 @@ class LsfServer
 {
 
     template<class T>
-    static void addToFilter
+    static std::set<T>& addToFilter
     (
         std::set<T>& filter,
         const std::string& s
@@ -64,28 +65,30 @@ class LsfServer
                 filter.insert(item);
             }
         }
+        return filter;
     }
 
 
     template<class T>
-    static void addToFilter
+    static std::set<T>& addToFilter
     (
         std::set<T>& filter,
         const QueryType& query,
         const std::string& name
     )
     {
-       const QueryType::string_list& args = query.param(name);
+        const QueryType::string_list& args = query.param(name);
 
-       for
-       (
-           QueryType::string_list::const_iterator iter = args.begin();
-           iter != args.end();
-           ++iter
-       )
-       {
-           addToFilter(filter, *iter);
-       }
+        for
+        (
+            QueryType::string_list::const_iterator iter = args.begin();
+            iter != args.end();
+            ++iter
+        )
+        {
+            addToFilter(filter, *iter);
+        }
+        return filter;
     }
 
 
@@ -206,8 +209,8 @@ class LsfServer
                 // filter based on resource requests
                 if (!rusageFilter.empty())
                 {
-                    std::map<std::string, std::string> resReq
-                        = lsfutil::LsfCore::rusageMap(job.submit.resReq);
+                    lsfutil::LsfCore::rusage_map resReq
+                        = lsfutil::LsfCore::parseRusage(job.submit.resReq);
 
                     if (!intersectsFilter(rusageFilter, resReq))
                     {
@@ -242,6 +245,35 @@ class LsfServer
     }
 
 
+    virtual int serve_dump
+    (
+        std::ostream& os,
+        HeaderType& head
+    ) const
+    {
+        lsfutil::LsfJobList jobs;
+
+        if (jobs.hasError())
+        {
+            head(head._503_SERVICE_UNAVAILABLE);
+            head.print(os, true);
+
+            return 1;
+        }
+
+        head.contentType("txt");
+        os  << head(head._200_OK);
+
+        if (head.request().type() == head.request().GET)
+        {
+            lsfutil::LsfJobList jobs;
+            jobs.dump(os);
+        }
+
+        return 0;
+    }
+
+
     virtual int serve_qstat_xml
     (
         std::ostream& os,
@@ -264,6 +296,34 @@ class LsfServer
         if (head.request().type() == head.request().GET)
         {
             lsfutil::OutputQstat::print(os, jobs);
+        }
+
+        return 0;
+    }
+
+
+    virtual int serve_qstatj_xml
+    (
+        std::ostream& os,
+        HeaderType& head
+    ) const
+    {
+        lsfutil::LsfJobList jobs;
+
+        if (jobs.hasError())
+        {
+            head(head._503_SERVICE_UNAVAILABLE);
+            head.print(os, true);
+
+            return 1;
+        }
+
+        head.contentType("xml");
+        os  << head(head._200_OK);
+
+        if (head.request().type() == head.request().GET)
+        {
+            lsfutil::OutputQstatJ::print(os, jobs);
         }
 
         return 0;
@@ -303,6 +363,11 @@ public:
                 return 1;
             }
 
+            if (url == "/dump")
+            {
+                return serve_dump(os, head);
+            }
+
             if (url == "/blsof")
             {
                 return serve_blsof(os, head);
@@ -311,6 +376,11 @@ public:
             if (url == "/qstat.xml")
             {
                 return serve_qstat_xml(os, head);
+            }
+
+            if (url == "/qstatj.xml")
+            {
+                return serve_qstatj_xml(os, head);
             }
 
 

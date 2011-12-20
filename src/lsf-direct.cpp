@@ -26,18 +26,28 @@ Description
 
 #include "lsfutil/LsfJobList.hpp"
 #include "lsfutil/OutputQstat.hpp"
+#include "lsfutil/OutputQstatJ.hpp"
 #include "markutil/HttpRequest.hpp"
 
 int main(int argc, char **argv)
 {
     if (argc == 1)
     {
+        std::cerr
+            << "no resource specified\n";
         return 1;
     }
 
     markutil::HttpRequest req("GET", argv[1]);
 
     std::string url = req.path();
+
+    if (url == "/dump")
+    {
+        lsfutil::LsfJobList jobs;
+        jobs.dump(std::cout);
+        return 0;
+    }
 
     if (url == "/blsof")
     {
@@ -52,20 +62,27 @@ int main(int argc, char **argv)
                 << job.relativeFilePath(job.submit.outFile) << " "
                 << job.jobId << "\n";
         }
+        return 0;
     }
-    else if (url == "/qstat.xml")
+
+    if (url == "/qstat.xml")
     {
         lsfutil::LsfJobList jobs;
         lsfutil::OutputQstat::print(std::cout, jobs);
+        return 0;
     }
-    else
+
+    if (url == "/qstatj.xml")
     {
-        std::cerr
-            << "no handler for " << url << "\n";
+        lsfutil::LsfJobList jobs;
+        lsfutil::OutputQstatJ::print(std::cout, jobs);
+        return 0;
     }
 
+    std::cerr
+        << "no handler for " << url << "\n";
 
-    return 0;
+    return 1;
 }
 
 /* ************************************************************************* */

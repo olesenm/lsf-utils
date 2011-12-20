@@ -46,6 +46,9 @@ namespace lsfutil
 class LsfCore
 {
 public:
+    //! The map type for rusage
+    typedef std::map<std::string, std::string> rusage_map;
+
 
     // Constructors
 
@@ -69,11 +72,17 @@ public:
     //- Remove leading './' from file names
     static bool fixFileName(std::string& name);
 
+    //- Replace all occurrences of a given string
+    static std::string& replaceAll
+    (
+        std::string& context,
+        const std::string& from,
+        const std::string& to
+    );
 
     // parse stuff like this
     // rusage[starcdLic=1:duration=5,starccmpLic=5:duration=5,starcdJob=6]
-    static std::map<std::string, std::string>
-    rusageMap(const std::string& resReq);
+    static rusage_map parseRusage(const std::string& resReq);
 
 };
 

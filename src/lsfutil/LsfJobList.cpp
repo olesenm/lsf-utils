@@ -108,6 +108,23 @@ bool lsfutil::LsfJobList::update()
 }
 
 
+std::ostream& lsfutil::LsfJobList::dump(std::ostream& os) const
+{
+    for (unsigned jobI = 0; jobI < this->size(); ++jobI)
+    {
+        if (!jobI)
+        {
+            os  << "==================================================\n";
+        }
+        this->operator[](jobI).dump(os);
+        os  << "==================================================\n";
+    }
+
+    return os;
+}
+
+
+
 // * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
 
 

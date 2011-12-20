@@ -69,11 +69,29 @@ bool lsfutil::LsfCore::fixFileName(std::string& name)
 }
 
 
+std::string& lsfutil::LsfCore::replaceAll
+(
+    std::string& context,
+    const std::string& from,
+    const std::string& to
+)
+{
+    std::string::size_type lookHere = 0;
+    std::string::size_type foundHere;
+
+    while ((foundHere = context.find(from, lookHere)) != std::string::npos)
+    {
+        context.replace(foundHere, from.size(), to);
+        lookHere = foundHere + to.size();
+    }
+    return context;
+}
+
 
 // parse stuff like this
 // rusage[starcdLic=1:duration=5,starccmpLic=5:duration=5,starcdJob=6]
 std::map<std::string, std::string>
-lsfutil::LsfCore::rusageMap(const std::string& resReq)
+lsfutil::LsfCore::parseRusage(const std::string& resReq)
 {
     std::map<std::string, std::string> output;
 

@@ -78,6 +78,7 @@ LIBHDRS = \
     lsfutil/LsfJobList.hpp \
     lsfutil/LsfJobSubEntry.hpp \
     lsfutil/OutputQstat.hpp \
+    lsfutil/OutputQstatJ.hpp \
     lsfutil/XmlUtils.hpp
 
 LIBSRCS = \
@@ -85,7 +86,9 @@ LIBSRCS = \
     lsfutil/LsfJobEntry.cpp \
     lsfutil/LsfJobList.cpp \
     lsfutil/LsfJobSubEntry.cpp \
-    lsfutil/OutputQstat.cpp
+    lsfutil/OutputQstat.cpp \
+    lsfutil/OutputQstatJ.cpp \
+    lsfutil/XmlUtils.cpp
 
 
 LIBOBJS = \
@@ -93,7 +96,9 @@ LIBOBJS = \
     lsfutil/LsfJobEntry.o \
     lsfutil/LsfJobList.o \
     lsfutil/LsfJobSubEntry.o \
-    lsfutil/OutputQstat.o
+    lsfutil/OutputQstat.o \
+    lsfutil/OutputQstatJ.o \
+    lsfutil/XmlUtils.o
 
 LIB2SRCS = \
     markutil/HttpCore.cpp \
@@ -151,7 +156,7 @@ libmarkutil.a: $(LIB2OBJS)
 # -----------------------------------------------------------------------------
 ####### Compile
 
-lsf-direct: lsf-direct.o $(LIBHDRS) $(LIB)
+lsf-direct: lsf-direct.o $(LIBHDRS) $(LIB) libmarkutil.a
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ $< \
     $(LDFLAGS) -L$(srcdir) -l$(LIBNAME) -lmarkutil $(LD_LSF)
 

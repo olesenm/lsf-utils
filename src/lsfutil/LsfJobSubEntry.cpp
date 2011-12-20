@@ -39,7 +39,6 @@ lsfutil::LsfJobSubEntry::LsfJobSubEntry(const struct submit& sub)
 :
     jobName(sub.jobName),
     queue(sub.queue),
-    askedHosts(),
     numProcessors(sub.numProcessors),
     dependCond(sub.dependCond),
     beginTime(sub.beginTime),
@@ -60,7 +59,9 @@ lsfutil::LsfJobSubEntry::LsfJobSubEntry(const struct submit& sub)
     postExecCmd(makeString(sub.postExecCmd)),
     cwd(makeString(sub.cwd)),
     notifyCmd(makeString(sub.notifyCmd)),
-    jobDescription(makeString(sub.jobDescription))
+    jobDescription(makeString(sub.jobDescription)),
+    resReq(),
+    askedHosts()
 {
 
     std::string::size_type eolp = command.find('\n');
@@ -89,9 +90,8 @@ lsfutil::LsfJobSubEntry::LsfJobSubEntry(const struct submit& sub)
         }
     }
 
-    resReq = sub.resReq;
-
 //    timeEvent_ = sub.timeEvent;
+    resReq = sub.resReq;
 
     fixDirName(cwd);
     fixFileName(inFile);
@@ -107,6 +107,7 @@ lsfutil::LsfJobSubEntry::LsfJobSubEntry(const struct submit& sub)
     {
         errFile.clear();
     }
+
 }
 
 
@@ -118,6 +119,56 @@ lsfutil::LsfJobSubEntry::~LsfJobSubEntry()
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+
+std::ostream& lsfutil::LsfJobSubEntry::dump(std::ostream& os) const
+{
+    os  << "jobName: " << jobName << "\n";
+    os  << "queue: " << queue << "\n";
+    os  << "numProcessors: " << numProcessors << "\n";
+    os  << "dependCond: " << dependCond << "\n";
+    os  << "beginTime: " << beginTime << "\n";
+    os  << "termTime: " << termTime << "\n";
+    os  << "inFile: " << inFile << "\n";
+    os  << "outFile: " << outFile << "\n";
+    os  << "errFile: " << errFile << "\n";
+
+    if (command.size() && command[0] == '#')
+    {
+        os  << "command: STDIN\n";
+    }
+    else
+    {
+        os  << "command: " << command << "\n";
+    }
+
+    os  << "chkpntDir: " << chkpntDir << "\n";
+    os  << "preExecCmd: " << preExecCmd << "\n";
+    os  << "mailUser: " << mailUser << "\n";
+    os  << "projectName: " << projectName << "\n";
+    os  << "loginShell: " << loginShell << "\n";
+    os  << "userGroup: " << userGroup << "\n";
+    os  << "jobGroup: " << jobGroup << "\n";
+    os  << "licenseProject: " << licenseProject << "\n";
+    os  << "app: " << app << "\n";
+    os  << "postExecCmd: " << postExecCmd << "\n";
+    os  << "cwd: " << cwd << "\n";
+    os  << "notifyCmd: " << notifyCmd << "\n";
+    os  << "jobDescription: " << jobDescription << "\n";
+    os  << "resReq: " << resReq << "\n";
+
+    os  << "askedHosts: (";
+    for (unsigned i=0; i << askedHosts.size(); ++i)
+    {
+        if (i)
+        {
+            os  << ' ';
+        }
+        os  << askedHosts[i];
+    }
+    os  << ")\n";
+
+    return os;
+}
 
 
 // * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //

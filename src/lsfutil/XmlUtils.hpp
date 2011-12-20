@@ -26,6 +26,7 @@ Description
 #define LSF_XMLUTILS_H
 
 #include <string>
+#include <vector>
 #include <iostream>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -33,16 +34,32 @@ Description
 namespace lsfutil
 {
 
+namespace xml
+{
+    extern const char* const indent0;
+    extern const char* const indent;
+
+
+    std::ostream& printList
+    (
+        std::ostream& os,
+        const std::vector<std::string>& list,
+        const char* listTag,
+        const char* elemTag
+    );
+
+
 /*---------------------------------------------------------------------------*\
-                          Class XmlString Declaration
+                          Class xml::String Declaration
 \*---------------------------------------------------------------------------*/
 
-class XmlString
+class String
 {
     const std::string& str_;
 
 public:
-    XmlString(const std::string& s)
+
+    String(const std::string& s)
     :
         str_(s)
     {}
@@ -63,8 +80,7 @@ public:
             ++iter
         )
         {
-            unsigned char c = (unsigned char)*iter;
-            switch (c)
+            switch (*iter)
             {
                 case '&':
                     os  << "&amp;";
@@ -83,14 +99,15 @@ public:
                     break;
 
                 default:
-                    if (c < 32 || c > 127)
+                    if (*iter >= 32 && *iter < 127)
                     {
-                        os  << "&#" << static_cast<unsigned int>(c) << ';';
+                        os  << *iter;
                     }
                     else
                     {
-                        os  << c;
+                        os  << "&#" << static_cast<unsigned int>(*iter) << ';';
                     }
+                    break;
             }
         }
 
@@ -98,26 +115,26 @@ public:
     }
 
 
-    friend std::ostream& operator<<(std::ostream& os, const XmlString& xmlstr)
+    friend std::ostream& operator<<(std::ostream& os, const String& s)
     {
-        return xmlstr.print(os);
+        return s.print(os);
     }
 
 };
 
 
 /*---------------------------------------------------------------------------*\
-                          Class XmlTag Declaration
+                          Class xml::Tag Declaration
 \*---------------------------------------------------------------------------*/
 
-class XmlTag
+class Tag
 {
     const std::string tag_;
-    const XmlString val_;
+    const String val_;
 
 public:
 
-    XmlTag(const std::string& tag, const std::string& val)
+    Tag(const std::string& tag, const std::string& val)
     :
         tag_(tag),
         val_(val)
@@ -134,25 +151,25 @@ public:
     }
 
 
-    friend std::ostream& operator<<(std::ostream& os, const XmlTag& xmltag)
+    friend std::ostream& operator<<(std::ostream& os, const Tag& t)
     {
-        return xmltag.print(os);
+        return t.print(os);
     }
 };
 
 
 /*---------------------------------------------------------------------------*\
-                         Class XmlTimeTag Declaration
+                        Class xml::TimeTag Declaration
 \*---------------------------------------------------------------------------*/
 
-class XmlTimeTag
+class TimeTag
 {
     const std::string tag_;
     const time_t epoch_;
 
 public:
 
-    XmlTimeTag(const std::string& tag, const time_t& epoch)
+    TimeTag(const std::string& tag, const time_t& epoch)
     :
         tag_(tag),
         epoch_(epoch)
@@ -185,15 +202,18 @@ public:
     }
 
 
-    friend std::ostream& operator<<(std::ostream& os, const XmlTimeTag& xmltag)
+    friend std::ostream& operator<<(std::ostream& os, const TimeTag& tt)
     {
-        return xmltag.print(os);
+        return tt.print(os);
     }
+
 };
 
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace xml
 
 } // End namespace lsfutil
 

@@ -17,104 +17,55 @@ License
     You should have received a copy of the GNU General Public License
     along with lsf-utils. If not, see <http://www.gnu.org/licenses/>.
 
+Class
+    lsfutil::OutputQstatJ
+
 Description
-    --
+    Output detailed job information in GridEngine qstat xml format
+
+SourceFiles
+    OutputQstatJ.cpp
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef LSF_JOB_LIST_H
-#define LSF_JOB_LIST_H
+#ifndef LSF_OUTPUT_QSTATJ_H
+#define LSF_OUTPUT_QSTATJ_H
 
-#include <string>
-#include <vector>
 #include <iostream>
 
-#include "lsfutil/LsfJobEntry.hpp"
+#include "lsfutil/LsfJobList.hpp"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace lsfutil
 {
 
-// Forward declaration of friend functions and operators
-class LsfJobList;
-
-
 /*---------------------------------------------------------------------------*\
-                         Class LsfJobList Declaration
+                         Class OutputQstatJ Declaration
 \*---------------------------------------------------------------------------*/
 
-class LsfJobList
-:
-    private std::vector<lsfutil::LsfJobEntry>
+class OutputQstatJ
 {
-    // Private data
+    // Private Member Functions
 
-        //! The last update time
-        time_t lastUpdate_;
-
-        //! The update interval
-        unsigned interval_;
-
-        //! Error
-        bool error_;
-
-        //! variables for simulating bjobs command
-        int options_;
+        static std::ostream& print(std::ostream&, const LsfJobEntry&);
+        static std::ostream& print(std::ostream&, const LsfJobSubEntry&);
 
 public:
 
-    // Static data members
+        static std::ostream& print(std::ostream&, const LsfJobList&);
 
-
-    // Constructors
-
-        //! Construct
-        LsfJobList(unsigned interval = 10, bool withPending = true);
-
-
-    //! Destructor
-    ~LsfJobList();
-
-
-    // Member Functions
-
-        // Access
-
-        bool hasError() const
-        {
-            return error_;
-        }
-
-        using std::vector<lsfutil::LsfJobEntry>::empty;
-        using std::vector<lsfutil::LsfJobEntry>::size;
-        using std::vector<lsfutil::LsfJobEntry>::operator[];
-
-        // Check
-
-        // Edit
-        bool update();
-
-        // Write
-        std::ostream& dump(std::ostream&) const;
-
-    // Member Operators
-
-    // Friend Functions
-
-    // Friend Operators
-
-    // IOstream Operators
 
 };
 
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
 
 } // End namespace lsfutil
 
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#endif  // LSF_JOB_LIST_H
+#endif  // LSF_OUTPUT_QSTATJ_H
 
 // ************************************************************************* //
