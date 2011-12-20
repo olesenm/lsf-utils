@@ -654,15 +654,32 @@ lsfutil::OutputQstat::print
         << " xmlns:xsd='http://www.w3.org/2001/XMLSchema'"
         << " type='lsf' count='" << list.size() << "'>\n";
 
+
+    // active jobs:
     os  << "<queue_info>\n";
     for (unsigned jobI = 0; jobI < list.size(); ++jobI)
     {
-        print(os, list[jobI]);
+        if (list[jobI].isRunning())
+        {
+            print(os, list[jobI]);
+        }
     }
+    os  << "</queue_info>\n";
 
-    os
-        << "</queue_info>\n"
-        << "</job_info>\n";
+
+    // pending jobs:
+    os  << "<job_info>\n";
+    for (unsigned jobI = 0; jobI < list.size(); ++jobI)
+    {
+        if (list[jobI].isPending())
+        {
+            print(os, list[jobI]);
+        }
+    }
+    os  << "</job_info>\n";
+
+
+    os  << "</job_info>\n";
 
     return os;
 }
