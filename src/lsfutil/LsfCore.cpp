@@ -111,10 +111,9 @@ lsfutil::LsfCore::parseRusage(const std::string& resReq)
         )
         {
             std::string key = resReq.substr(beg, equals-beg);
+            ++equals;
             std::string val = resReq.substr(equals, end-equals);
             output[key] = val;
-
-            ++equals;
 
             if (resReq[end] == ':')
             {
@@ -125,7 +124,6 @@ lsfutil::LsfCore::parseRusage(const std::string& resReq)
             {
                 break;
             }
-
 
             beg = end + 1;
         }

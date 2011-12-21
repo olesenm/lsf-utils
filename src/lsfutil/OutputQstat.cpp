@@ -350,55 +350,20 @@ lsfutil::OutputQstat::print
     // lists (see \ref ls_task ). If the task does not appear in the
     // remote task lists, then the default resource requirement
     // is to run on host() of the same type.
-    if (sub.resReq.size())
+    LsfCore::rusage_map rusage = LsfCore::parseRusage(sub.resReq);
+    for
+    (
+        LsfCore::rusage_map::const_iterator iter = rusage.begin();
+        iter != rusage.end();
+        ++iter
+    )
     {
-//         os  << xml::indent
-//             << xml::Tag("resource-request", sub.resReq) << "\n";
-
-        // parse stuff like this
-        // rusage[starcdLic=1:duration=5,starccmpLic=5:duration=5,starcdJob=6]
-
-        const std::string& resReq = sub.resReq;
-
-        const std::string begMark = "rusage[";
-        std::string::size_type beg = resReq.find(begMark);
-        if (beg != std::string::npos)
-        {
-            beg += begMark.size();
-            std::string::size_type end;
-            std::string::size_type equals;
-
-            while
-            (
-                (end = resReq.find_first_of(",:]", beg)) != std::string::npos
-             && (equals = resReq.find('=', beg)) != std::string::npos
-             && (equals < end)
-            )
-            {
-                os  << xml::indent
-                    << "<hard_request name='"
-                    << resReq.substr(beg, equals-beg)
-                    << "' resource_contribution='0.0'>";
-
-                ++equals;
-
-                os  << resReq.substr(equals, end-equals)
-                    << "</hard_request>" << "\n";
-
-                if (resReq[end] == ':')
-                {
-                    end = resReq.find_first_of(",]", end);
-                }
-
-                if (end == std::string::npos || resReq[end] == ']')
-                {
-                    break;
-                }
-
-
-                beg = end + 1;
-            }
-        }
+        os  << xml::indent
+            << "<hard_request name='"
+            << iter->first
+            << "' resource_contribution='0.0'>"
+            << iter->second
+            << "</hard_request>" << "\n";
     }
 
 //     int     rLimits[LSF_RLIM_NLIMITS];
