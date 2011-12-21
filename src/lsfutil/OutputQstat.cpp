@@ -57,9 +57,21 @@ lsfutil::OutputQstat::print
     // The name of the user who submitted the job
     os  << xml::indent << xml::Tag("JB_owner", job.user) << "\n";
 
-    os  << xml::indent
-        << "<state>" << job.status[0] << "</state>\n";
+    os  << xml::indent;
 
+    // this is a real hack
+    if (job.isRunning())
+    {
+        os  << "<state>r</state>\n";
+    }
+    else if (job.isPending())
+    {
+        os  << "<state>qw</state>\n";
+    }
+    else
+    {
+        os  << "<state>" << job.status[0] << "</state>\n";
+    }
 
     // <JAT_prio> ... </JAT_prio>
 
@@ -461,12 +473,12 @@ lsfutil::OutputQstat::print
     if (sub.command.size() && (sub.command)[0] == '#')
     {
         os  << xml::indent
-            << xml::Tag("command", "STDIN") << "\n";
+            << xml::Tag("JB_script_file", "STDIN") << "\n";
     }
     else
     {
         os  << xml::indent
-            << xml::Tag("command", sub.command) << "\n";
+            << xml::Tag("JB_script_file", sub.command) << "\n";
     }
 
 //     char    *newCommand;    /**< New command line for bmod. */

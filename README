@@ -1,2 +1,5 @@
 Miscellaneous utilities for LSF - in development.
 Aimed to provide an interface to xml-qstat and other infrastructure.
+
+The build mechanism sort of works with ./configure + ./make but the
+needs attention.
