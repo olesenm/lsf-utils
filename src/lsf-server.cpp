@@ -235,7 +235,7 @@ class LsfServer
                 const lsfutil::LsfJobEntry& job = jobs[displayJob[displayI]];
 
                 os  << job.cwd << " "
-                    << job.relativeFilePath(job.submit.outFile) << " "
+                    << job.submit.outFile << " "
                     << job.jobId << "\n";
             }
 

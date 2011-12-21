@@ -59,7 +59,7 @@ int main(int argc, char **argv)
 
             std::cout
                 << job.cwd << " "
-                << job.relativeFilePath(job.submit.outFile) << " "
+                << job.submit.outFile << " "
                 << job.jobId << "\n";
         }
         return 0;

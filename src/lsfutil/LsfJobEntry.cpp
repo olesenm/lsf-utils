@@ -106,6 +106,9 @@ lsfutil::LsfJobEntry::LsfJobEntry(const struct jobInfoEnt& job)
 
     replaceAll(submit.errFile, "%J", makeString(jobId));
     replaceAll(submit.errFile, "%I", makeString(taskId));
+
+    submit.outFile = this->relativeFilePath(submit.outFile);
+    submit.errFile = this->relativeFilePath(submit.errFile);
 }
 
 
