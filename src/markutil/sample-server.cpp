@@ -82,96 +82,9 @@ public:
             // rewrite rules
             const std::string& url = req.path();
 
-            if (url == "/server-info")
+            if (url == "/debug-query")
             {
-                os  << head(head._200_OK);
-
-                if (req.type() == req.GET)
-                {
-                    const QueryType& query = req.query();
-
-                    os  << "<html><head>"
-                        << "<title>server-info</title>"
-                        << "</head><body>"
-                        << "Date: " << head["Date"] << "<br />"
-                        << "Document-Root: " << this->root() << "<br />"
-                        << "Server: " << this->name() << "<br />"
-                        << "Request: ";
-
-                    xmlEscapeChars
-                    (
-                        os,
-                        req.requestURI()
-                    ) << "<br />";
-                    os  << "<hr />";
-
-                    if (!query.empty())
-                    {
-                        const QueryType::string_list& unnamed = query.unnamed();
-                        if (!unnamed.empty())
-                        {
-                            os  << unnamed.size()
-                                << " unnamed<br /><blockquote>";
-
-                            for
-                            (
-                                unsigned nameI = 0;
-                                nameI < unnamed.size();
-                                ++nameI
-                            )
-                            {
-                                xmlEscapeChars
-                                (
-                                    os,
-                                    unnamed[nameI]
-                                )  << "<br />";
-                            }
-                            os  << "</blockquote><hr />";
-                        }
-
-
-                        QueryType::string_list param = query.param();
-                        if (!param.empty())
-                        {
-                            os  << param.size()
-                                << " param<br /><blockquote>";
-                            for
-                            (
-                                unsigned nameI = 0;
-                                nameI < param.size();
-                                ++nameI
-                            )
-                            {
-                                const std::string& name = param[nameI];
-                                const QueryType::string_list& vals
-                                    = query.param(name);
-
-                                for
-                                (
-                                    unsigned valI = 0;
-                                    valI < vals.size();
-                                    ++valI
-                                )
-                                {
-                                    xmlEscapeChars
-                                    (
-                                        os,
-                                        name
-                                    ) << "=";
-                                    xmlEscapeChars
-                                    (
-                                        os,
-                                        vals[valI]
-                                    ) << "<br />";
-                                }
-                            }
-                            os  << "</blockquote><hr />";
-                        }
-                    }
-                    os  << "</body></html>\n";
-                }
-
-                return 0;
+                return this->server_info(os, head);
             }
 
 
@@ -187,6 +100,117 @@ public:
             return this->ParentClass::reply(os, head);
         }
 
+
+        //! Specialized server-info
+        virtual int debug_query(std::ostream& os, HeaderType& head) const
+        {
+            RequestType& req = head.request();
+
+            if
+            (
+                req.type() != req.HEAD
+             && req.type() != req.GET
+            )
+            {
+                head(head._405_METHOD_NOT_ALLOWED);
+                head("Allow", "GET,HEAD");
+                head.print(os, true);
+
+                return 1;
+            }
+
+
+            os  << head(head._200_OK);
+
+            if (req.type() == req.GET)
+            {
+                const QueryType& query = req.query();
+
+                os  << "<html><head>"
+                    << "<title>server-info</title>"
+                    << "</head><body>"
+                    << "Date: " << head["Date"] << "<br />"
+                    << "Document-Root: " << this->root() << "<br />"
+                    << "Server: " << this->name() << "<br />"
+                    << "Request: ";
+
+                xmlEscapeChars
+                (
+                    os,
+                    req.requestURI()
+                ) << "<br />";
+                os  << "<hr />";
+
+                if (!query.empty())
+                {
+                    const QueryType::string_list& unnamed = query.unnamed();
+                    if (!unnamed.empty())
+                    {
+                        os  << unnamed.size()
+                            << " unnamed<br /><blockquote>";
+
+                        for
+                        (
+                            unsigned nameI = 0;
+                            nameI < unnamed.size();
+                            ++nameI
+                        )
+                        {
+                            xmlEscapeChars
+                            (
+                                os,
+                                unnamed[nameI]
+                            )  << "<br />";
+                        }
+                        os  << "</blockquote><hr />";
+                    }
+
+
+                    QueryType::string_list param = query.param();
+                    if (!param.empty())
+                    {
+                        os  << param.size()
+                            << " param<br /><blockquote>";
+                        for
+                        (
+                            unsigned nameI = 0;
+                            nameI < param.size();
+                            ++nameI
+                        )
+                        {
+                            const std::string& name = param[nameI];
+                            const QueryType::string_list& vals
+                                = query.param(name);
+
+                            for
+                            (
+                                unsigned valI = 0;
+                                valI < vals.size();
+                                ++valI
+                                )
+                            {
+                                xmlEscapeChars
+                                (
+                                    os,
+                                    name
+                                ) << "=";
+                                xmlEscapeChars
+                                (
+                                    os,
+                                    vals[valI]
+                                ) << "<br />";
+                            }
+                        }
+                        os  << "</blockquote><hr />";
+                    }
+                }
+                os  << "</body></html>\n";
+            }
+
+            return 0;
+        }
+
+
 };
 
 
@@ -197,13 +221,13 @@ int main(int argc, char **argv)
 {
     const std::string name("sample-server");
 
-    if (argc != 3)
+    if (argc < 3 || argc > 4)
     {
         std::cerr
             << "incorrect number of arguments\n\n";
 
         std::cerr
-            << "usage: "<< name << " Port DocRoot\n\n"
+            << "usage: "<< name << " Port DocRoot [cgi-bin]\n\n"
             << "A small sample web server in C++\n\n"
             << "Eg,\n"
             << name << " " << markutil::HttpServer::defaultPort
@@ -214,6 +238,7 @@ int main(int argc, char **argv)
 
     const int port = atoi(argv[1]);
     const std::string docRoot(argv[2]);
+    const std::string cgiBin = (argc > 3 ? argv[3] : "");
 
     // verify port-number
     if (port < 1 || port > 65535)
@@ -231,9 +256,19 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    // verify cgi-bin
+    if (cgiBin.size() && !markutil::HttpCore::isDir(cgiBin))
+    {
+        std::cerr
+            << "Directory does not exist: "<< cgiBin << "\n";
+        return 1;
+    }
+
     markutil::HttpServer::daemonize();
 
     MyServer server(port, docRoot);
+    server.cgibin(cgiBin);
+
     server.listen(64);
 
     return server.run();

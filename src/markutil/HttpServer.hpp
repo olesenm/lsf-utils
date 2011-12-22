@@ -68,6 +68,24 @@ class HttpServer
         //! \brief The server-name
         std::string name_;
 
+        //! \brief The prefix for serving cgi-bin
+        std::string cgiPrefix_;
+
+        //! \brief The cgi-bin
+        std::string cgibin_;
+
+    // Private Member Functions
+
+
+        //! set absolute or relative path
+        bool setPath(std::string& target, const std::string& path);
+
+
+        //! set CGI environment variables prior to calling cgi itself
+        //  Returns the SCRIPT_NAME for valid requests and an empty
+        //  string if there are problems
+        void prepareCgiEnv(HttpHeader& head) const;
+
 
 public:
 
@@ -88,9 +106,18 @@ public:
         //! \brief The default name for the 'Server' header
         static std::string defaultName;
 
+        //! \brief The default prefix for cgi-bin, no trailing slash
+        static std::string defaultCgiPrefix;
+
+
+    // Static Functions
+
         //! \brief Convenience routine for daemonizing a process
         //  optionally suppress exit and handle in caller instead
         static int daemonize(const bool doNotExit=false);
+
+        //! \brief Fully-qualified hostname
+        static std::string hostName();
 
 
     // Constructors
@@ -119,16 +146,30 @@ public:
             //! \brief The location used for the document root
             const std::string& root() const;
 
+            //! \brief The location used for serving the cgi-bin
+            const std::string& cgibin() const;
+
+            //! \brief The CGI prefix
+            const std::string& cgiPrefix() const;
+
 
         // Edit
 
             //! \brief Set the value to be used for the 'Server' header
-            void name(const std::string& name);
+            bool name(const std::string& name);
 
             //! \brief Set the location used for the document root
             //  Resolved automatically to an absolute path
             //  Serving the "/" directory is not permitted.
-            void root(const std::string& root);
+            bool root(const std::string& root);
+
+            //! \brief Set the location used for the cgi-bin
+            //  Resolved automatically to an absolute path
+            //  Serving the "/" directory is not permitted.
+            bool cgibin(const std::string& bindir);
+
+            //! \brief Set the CGI prefix
+            bool cgiPrefix(const std::string& prefix);
 
 
         // General Operation
@@ -136,8 +177,15 @@ public:
             //! \brief Enter infinite loop, replying to incoming requests
             int run();
 
+            //! \brief Invoke cgi for incoming request, which is already embedded in the reply header
+            //  We are especially lazy and only support Non-Parsed-Headers for now.
+            virtual int cgi(int fd, HeaderType&) const;
+
             //! \brief Reply to the incoming request, which is already embedded in the reply header
             virtual int reply(std::ostream&, HeaderType&) const;
+
+            //! \brief Reply with server information
+            virtual int server_info(std::ostream&, HttpHeader&) const;
 
 };
 

@@ -195,6 +195,10 @@ void markutil::HttpRequest::readHeader(std::istream& is)
     {
         httpver_ = getToken(buf, beg);
     }
+    else
+    {
+        httpver_.clear();
+    }
 
     this->HttpCore::readHeader(is);
 }
@@ -209,6 +213,12 @@ const markutil::HttpRequest::MethodType& markutil::HttpRequest::type() const
 const std::string& markutil::HttpRequest::method() const
 {
     return method_;
+}
+
+
+const std::string& markutil::HttpRequest::protocol() const
+{
+    return httpver_;
 }
 
 

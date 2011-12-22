@@ -135,6 +135,9 @@ public:
             //! \brief Return the Method as a string
             const std::string& method() const;
 
+            //! \brief Return the protocol (eg, HTTP/1.0) as a string
+            const std::string& protocol() const;
+
             //! \brief Return the Request-URI
             std::string requestURI() const;
 

@@ -398,13 +398,13 @@ int main(int argc, char **argv)
 {
     const std::string name("sample-server");
 
-    if (argc != 3)
+    if (argc < 3 || argc > 4)
     {
         std::cerr
             << "incorrect number of arguments\n\n";
 
         std::cerr
-            << "usage: "<< name << " Port DocRoot\n\n"
+            << "usage: "<< name << " Port DocRoot [cgi-bin]\n\n"
             << "A small sample web server in C++\n\n"
             << "Eg,\n"
             << name << " " << markutil::HttpServer::defaultPort
@@ -415,6 +415,7 @@ int main(int argc, char **argv)
 
     const int port = atoi(argv[1]);
     const std::string docRoot(argv[2]);
+    const std::string cgiBin = (argc > 3 ? argv[3] : "");
 
     // verify port-number
     if (port < 1 || port > 65535)
@@ -432,9 +433,19 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    // verify cgi-bin
+    if (cgiBin.size() && !markutil::HttpCore::isDir(cgiBin))
+    {
+        std::cerr
+            << "Directory does not exist: "<< cgiBin << "\n";
+        return 1;
+    }
+
     markutil::HttpServer::daemonize();
 
     LsfServer server(port, docRoot);
+    server.cgibin(cgiBin);
+
     server.listen(64);
 
     return server.run();
