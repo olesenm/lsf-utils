@@ -72,7 +72,7 @@ std::string markutil::HttpCore::timestring()
 
 const std::string& markutil::HttpCore::lookupMime(const std::string& ext)
 {
-    static StringMapNoCase lookup;
+    static RawHeaderType lookup;
 
     // populate lookup table on the first call
     if (lookup.empty())
@@ -105,7 +105,7 @@ const std::string& markutil::HttpCore::lookupMime(const std::string& ext)
         return nullString;
     }
 
-    StringMapNoCase::const_iterator iter = lookup.find(ext);
+    RawHeaderType::const_iterator iter = lookup.find(ext);
     if (iter == lookup.end())
     {
         return nullString;
@@ -415,7 +415,7 @@ int markutil::HttpCore::readHeader(std::istream& is)
             break;
         }
 
-        headers_[buf.substr(0, delim-1)] = buf.substr(val);
+        headers_[buf.substr(0, delim)] = buf.substr(val);
         ++nHeaders;
     }
 
@@ -429,13 +429,19 @@ void markutil::HttpCore::clear()
 }
 
 
+const markutil::HttpCore::RawHeaderType& markutil::HttpCore::rawHeaders() const
+{
+    return headers_;
+}
+
+
 const std::string& markutil::HttpCore::lookupOrDefault
 (
     const std::string& key,
     const std::string& defValue
 ) const
 {
-    StringMapNoCase::const_iterator iter = headers_.find(key);
+    RawHeaderType::const_iterator iter = headers_.find(key);
     return iter != headers_.end() ? iter->second : defValue;
 }
 
@@ -444,7 +450,7 @@ std::ostream& markutil::HttpCore::print(std::ostream& os) const
 {
     for
     (
-        StringMapNoCase::const_iterator iter = headers_.begin();
+        RawHeaderType::const_iterator iter = headers_.begin();
         iter != headers_.end();
         ++iter
     )

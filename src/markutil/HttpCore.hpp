@@ -46,6 +46,8 @@ namespace markutil
 
 class HttpCore
 {
+public:
+
     //! case-insensitive compare
     //
     //  return value for "string1 < string2"
@@ -64,21 +66,17 @@ class HttpCore
        std::string,
        std::string,
        noCaseCmp
-    > StringMapNoCase;
+    > RawHeaderType;
 
+private:
 
     // Private data
 
-        //! Request or Response headers
-        StringMapNoCase headers_;
-
-
-protected:
-
-    // Protected data
-
         //! An empty string
         static const std::string nullString;
+
+        //! Raw Request or Response headers
+        RawHeaderType headers_;
 
 
 public:
@@ -162,6 +160,9 @@ public:
 
 
         // Access
+
+            //! Raw Request or Response headers
+            const RawHeaderType& rawHeaders() const;
 
             //! Lookup existing header entry or use default provided
             const std::string& lookupOrDefault

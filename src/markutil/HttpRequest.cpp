@@ -32,7 +32,7 @@ License
 // * * * * * * * * * * * * * * * Local Functions * * * * * * * * * * * * * * //
 
 // local scope
-std::string getToken(const std::string& buf, size_t& beg)
+static std::string getToken(const std::string& buf, size_t& beg)
 {
     if (beg == std::string::npos)
     {

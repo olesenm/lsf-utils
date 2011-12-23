@@ -588,6 +588,7 @@ int markutil::HttpServer::server_info(std::ostream& os, HttpHeader& head) const
         os  << "<html><head>"
             << "<title>server-info</title>"
             << "</head><body>"
+            << "<hr /><h3>Server Info</h3><blockquote>"
             << "Date: " << head["Date"] << "<br />"
             << "Server-Software: " << this->name() << "<br />"
             << "Server-Name: " << this->hostName() << "<br />"
@@ -600,8 +601,22 @@ int markutil::HttpServer::server_info(std::ostream& os, HttpHeader& head) const
         (
             os,
             req.requestURI()
-        ) << "<br />";
-        os  << "<hr />";
+        ) << "</blockquote>";
+
+        // raw request headers
+        os  << "<hr /><h3>Request Headers</h3><blockquote>";
+        const RequestType::RawHeaderType& rawHead = req.rawHeaders();
+        for
+        (
+            RequestType::RawHeaderType::const_iterator iter = rawHead.begin();
+            iter != rawHead.end();
+            ++iter
+        )
+        {
+            os  << iter->first << ": ";
+            xmlEscapeChars(os, iter->second) << "<br />\n";
+        }
+        os  << "</blockquote><hr />";
         os  << "</body></html>\n";
     }
 
