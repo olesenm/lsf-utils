@@ -148,28 +148,56 @@ bool markutil::HttpServer::setPath
 void markutil::HttpServer::prepareCgiEnv(HttpHeader& head) const
 {
     HttpRequest& req = head.request();
-
-    std::string server_name = this->hostName();
     std::string script_url = req.path();
-    std::string server_url = "http://" + server_name;
 
+    // get server name and port
+    std::string server_name;
     std::string server_port("80");
+
+    if (req["Host"].size())
     {
+        // 1. From the "Host:" - this represents the externally seen name
+        server_name = req["Host"];
+        setenv("HTTP_HOST", server_name.c_str(), 1);
+
+        // split into <host>:<port>
+        size_t colon = server_name.find(':');
+        if (colon != std::string::npos)
+        {
+            server_port = server_name.substr(colon + 1);
+            server_name.resize(colon);
+
+            // should not happen
+            if (server_port.empty())
+            {
+                server_port = "80";
+            }
+        }
+    }
+    else
+    {
+        // 2. Just use the host-name directly and hope it can also be
+        //    seen externally
+        server_name = this->hostName();
+
         std::ostringstream oss;
         oss << port_;
         server_port = oss.str();
     }
-    if (port_ != 80)
+
+    std::string server_url = "http://" + server_name;
+
+    if (server_port != "80")
     {
         server_url += ":" + server_port;
     }
+
 
     std::string script_uri = server_url + script_url;
     server_url += "/";
 
 
     // safer environment
-    setenv("PATH", "/usr/bin:/bin", 1);
     setenv("PATH", "/usr/bin:/bin", 1);
     unsetenv("LD_LIBRARY_PATH");
 
@@ -182,6 +210,19 @@ void markutil::HttpServer::prepareCgiEnv(HttpHeader& head) const
     unsetenv("LOGNAME");
     unsetenv("USER");
 
+    // HTTPi
+    // SERVER_URL="http://<host>[:<port>]/"
+
+
+    // Apache
+    // HTTP_HOST="<host>[:<port>]"
+    // SCRIPT_URI="http://<host>[:<port>]/cgi-bin/..."
+    // SCRIPT_URL="/cgi-bin/..."
+
+    // Missing thus far,
+    // REMOTE_ADDR="N.N.N.N"
+    // REMOTE_PORT="<digits>"
+    // SERVER_ADDR="N.N.N.N"
 
     if (req["User-Agent"].size())
     {
@@ -190,24 +231,6 @@ void markutil::HttpServer::prepareCgiEnv(HttpHeader& head) const
     else
     {
         unsetenv("HTTP_USER_AGENT");
-    }
-
-    if (req["Referer"].size())
-    {
-        setenv("HTTP_REFERER", req["Referer"].c_str(), 1);
-    }
-    else
-    {
-        unsetenv("HTTP_REFERER");
-    }
-
-    if (req["Host"].size())
-    {
-        setenv("HTTP_HOST", req["Host"].c_str(), 1);
-    }
-    else
-    {
-        unsetenv("HTTP_HOST");
     }
 
     setenv("REQUEST_METHOD", req.method().c_str(), 1);
@@ -220,7 +243,6 @@ void markutil::HttpServer::prepareCgiEnv(HttpHeader& head) const
 
     setenv("DOCUMENT_ROOT", this->root().c_str(), 1);
 
-    // REMOTE_HOST
     // REMOTE_ADDR
     // REMOTE_PORT
 
