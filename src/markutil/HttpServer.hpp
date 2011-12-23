@@ -84,7 +84,7 @@ class HttpServer
         //! set CGI environment variables prior to calling cgi itself
         //  Returns the SCRIPT_NAME for valid requests and an empty
         //  string if there are problems
-        void prepareCgiEnv(HttpHeader& head) const;
+        void prepareCgiEnv(int sockfd, HttpHeader& head) const;
 
 
 public:

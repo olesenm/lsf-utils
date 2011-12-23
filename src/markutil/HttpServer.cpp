@@ -31,6 +31,10 @@ License
 #include <unistd.h>
 #include <sstream>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <errno.h>
 
 #include "fdstream/fdstream.hpp"
 
@@ -103,6 +107,101 @@ std::string markutil::HttpServer::hostName()
 }
 
 
+// local scope
+static bool getAddrAndPort
+(
+    int fd,
+    const std::string& prefix,
+    std::string& sock_addr,
+    std::string& sock_port,
+    std::string& sock_host
+)
+{
+    sock_addr.clear();
+    sock_port.clear();
+    sock_host.clear();
+
+    // get socket information
+    struct sockaddr_in sockAddr;
+    socklen_t sin_len = sizeof(sockAddr);
+    if (prefix == "REMOTE")
+    {
+        if
+        (
+            ::getpeername
+            (
+                fd,
+                reinterpret_cast<struct sockaddr *>(&sockAddr),
+                &sin_len
+            )
+         || !sin_len
+        )
+        {
+            return false;
+        }
+    }
+    else if (prefix == "SERVER")
+    {
+        if
+        (
+            ::getsockname
+            (
+                fd,
+                reinterpret_cast<struct sockaddr *>(&sockAddr),
+                &sin_len
+            )
+         || !sin_len
+        )
+        {
+            return false;
+        }
+    }
+    else
+    {
+        return false;
+    }
+
+    // convert IP and PORT
+    // PORT is always smaller that any IP-Address in string form
+    char buf[INET_ADDRSTRLEN];
+
+    sprintf(buf, "%d", ntohs(sockAddr.sin_port));
+    sock_port = buf;
+
+    if
+    (
+        inet_ntop
+        (
+            AF_INET,
+            &(sockAddr.sin_addr.s_addr),
+            buf,
+            sizeof(buf)
+        )
+    )
+    {
+        sock_addr = buf;
+
+        struct hostent *hp = ::gethostbyaddr
+        (
+            &(sockAddr.sin_addr.s_addr),
+            sizeof(sockAddr.sin_addr.s_addr),
+            AF_INET
+        );
+        if (hp)
+        {
+            sock_host = hp->h_name;
+        }
+    }
+    else
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
 bool markutil::HttpServer::setPath
@@ -145,118 +244,167 @@ bool markutil::HttpServer::setPath
 }
 
 
-void markutil::HttpServer::prepareCgiEnv(HttpHeader& head) const
+void markutil::HttpServer::prepareCgiEnv(int fd, HttpHeader& head) const
 {
     HttpRequest& req = head.request();
     std::string script_url = req.path();
 
-    // get server name and port
-    std::string server_name;
-    std::string server_port("80");
-
-    if (req["Host"].size())
+    // we might need the requested "Host:" as a fallback value
+    // HTTP_HOST="<host>[:<port>]"
+    std::string http_host = req["Host"];
+    if (http_host.size())
     {
-        // 1. From the "Host:" - this represents the externally seen name
-        server_name = req["Host"];
-        setenv("HTTP_HOST", server_name.c_str(), 1);
+        setenv("HTTP_HOST", http_host.c_str(), 1);
+    }
+    else
+    {
+        unsetenv("HTTP_HOST");
+    }
 
-        // split into <host>:<port>
-        size_t colon = server_name.find(':');
-        if (colon != std::string::npos)
+    //
+    // get REMOTE_ADDR, REMOTE_PORT from socket information
+    // and REMOTE_HOST from gethostbyaddr
+    //
+    std::string remote_addr, remote_port, remote_host;
+    getAddrAndPort(fd, "REMOTE", remote_addr, remote_port, remote_host);
+    if (remote_addr.size() && remote_port.size())
+    {
+        setenv("REMOTE_ADDR", remote_addr.c_str(), 1);
+        setenv("REMOTE_PORT", remote_port.c_str(), 1);
+        if (remote_host.size())
         {
-            server_port = server_name.substr(colon + 1);
-            server_name.resize(colon);
-
-            // should not happen
-            if (server_port.empty())
-            {
-                server_port = "80";
-            }
+            setenv("REMOTE_HOST", remote_host.c_str(), 1);
+        }
+        else
+        {
+            unsetenv("REMOTE_HOST");
         }
     }
     else
     {
-        // 2. Just use the host-name directly and hope it can also be
-        //    seen externally
-        server_name = this->hostName();
-
-        std::ostringstream oss;
-        oss << port_;
-        server_port = oss.str();
+        unsetenv("REMOTE_ADDR");
+        unsetenv("REMOTE_PORT");
+        unsetenv("REMOTE_HOST");
     }
 
-    std::string server_url = "http://" + server_name;
+    //
+    // get SERVER_ADDR, SERVER_PORT from socket information
+    // and SERVER_NAME from gethostbyaddr
+    //
+    std::string server_addr, server_port, server_name;
+    getAddrAndPort(fd, "SERVER", server_addr, server_port, server_name);
+    if (server_addr.size() && server_port.size())
+    {
+        setenv("SERVER_ADDR", server_addr.c_str(), 1);
+    }
+    else
+    {
+        unsetenv("SERVER_ADDR");
+    }
 
+    if (server_port.empty())
+    {
+        server_port = "80";    // default HTTP port
+    }
+
+    //
+    // if reverse lookup of SERVER_ADDR -> SERVER_NAME failed ...
+    //
+    if (server_name.empty())
+    {
+        if (http_host.size())
+        {
+            // 1. From the "Host:" - this represents the externally seen name
+            server_name = http_host;
+
+            // split into <host>:<port>
+            size_t colon = server_name.find(':');
+            if (colon != std::string::npos)
+            {
+                server_port = server_name.substr(colon + 1);
+                server_name.resize(colon);
+
+                // should not happen
+                if (server_port.empty())
+                {
+                    server_port = "80";    // default HTTP port
+                }
+            }
+        }
+        else
+        {
+            // 2. Just use the host-name directly and hope it can also be
+            //    seen externally
+            server_name = this->hostName();
+
+            std::ostringstream oss;
+            oss << port_;
+            server_port = oss.str();
+        }
+    }
+
+    setenv("SERVER_NAME", server_name.c_str(), 1);
+    setenv("SERVER_PORT", server_port.c_str(), 1);
+
+    std::string server_url = "http://" + server_name;
     if (server_port != "80")
     {
         server_url += ":" + server_port;
     }
 
 
+    // Apache may not export this
+    // SERVER_URL="http://<host>[:<port>]/"
+    setenv("SERVER_URL", (server_url + '/').c_str(), 1);
+
+
     std::string script_uri = server_url + script_url;
     server_url += "/";
-
-
-    // safer environment
-    setenv("PATH", "/usr/bin:/bin", 1);
-    unsetenv("LD_LIBRARY_PATH");
-
-    unsetenv("SSH_CLIENT");
-    unsetenv("SSH_TTY");
-    unsetenv("OLDPWD");
-    unsetenv("USER");
-    unsetenv("MAIL");
-    unsetenv("HOME");
-    unsetenv("LOGNAME");
-    unsetenv("USER");
-
-    // HTTPi
-    // SERVER_URL="http://<host>[:<port>]/"
-
-
-    // Apache
-    // HTTP_HOST="<host>[:<port>]"
-    // SCRIPT_URI="http://<host>[:<port>]/cgi-bin/..."
-    // SCRIPT_URL="/cgi-bin/..."
-
-    // Missing thus far,
-    // REMOTE_ADDR="N.N.N.N"
-    // REMOTE_PORT="<digits>"
-    // SERVER_ADDR="N.N.N.N"
-
-    if (req["User-Agent"].size())
-    {
-        setenv("HTTP_USER_AGENT", req["User-Agent"].c_str(), 1);
-    }
-    else
-    {
-        unsetenv("HTTP_USER_AGENT");
-    }
 
     setenv("REQUEST_METHOD", req.method().c_str(), 1);
 
     setenv("SERVER_NAME", server_name.c_str(), 1);
     setenv("SERVER_PORT", server_port.c_str(), 1);
-    setenv("SERVER_URL",  server_url.c_str(), 1);
     setenv("SERVER_PROTOCOL", req.protocol().c_str(), 1);
     setenv("SERVER_SOFTWARE", this->name().c_str(), 1);
 
     setenv("DOCUMENT_ROOT", this->root().c_str(), 1);
 
-    // REMOTE_ADDR
-    // REMOTE_PORT
-
+    // QUERY_STRING is everything after the '?'
     setenv("QUERY_STRING", req.query().toString().c_str(), 1);
+
+    // REQUEST_URI is "/cgi-bin/...?..."
     setenv("REQUEST_URI", req.requestURI().c_str(), 1);
 
+    // SCRIPT_URI="http://<host>[:<port>]/cgi-bin/..."
+    // without the query string
     setenv("SCRIPT_URI", script_uri.c_str(), 1);
+
+    // SCRIPT_URL="/cgi-bin/..."
+    // without the query string
     setenv("SCRIPT_URL", script_url.c_str(), 1);
 
+    //
+    // finally
     // split SCRIPT_URL into SCRIPT_NAME + PATH_INFO
+
+    std::string script_name;
+    size_t slash = script_url.find('/', cgiPrefix_.size() + 1);
+    if (slash == std::string::npos)
+    {
+        script_name = script_url;
+    }
+    else
+    {
+        script_name = script_url.substr(0, slash);
+    }
+
+    // script name includes the leading "/cgi-bin/"
+    setenv("SCRIPT_NAME", script_name.c_str(), 1);
 
     // remove leading "/cgi-bin"
     script_url.erase(0, cgiPrefix_.size());
-    size_t slash = script_url.find('/', 1);
+    slash = script_url.find('/', 1);
     if (slash == std::string::npos)
     {
         unsetenv("PATH_INFO");
@@ -276,8 +424,36 @@ void markutil::HttpServer::prepareCgiEnv(HttpHeader& head) const
 
     std::string script_filename = this->cgibin() + script_url;
 
-    setenv("SCRIPT_NAME", script_url.c_str(), 1);
     setenv("SCRIPT_FILENAME", script_filename.c_str(), 1);
+
+
+    //
+    // pass through some request header information
+    //
+    if (req["User-Agent"].size())
+    {
+        setenv("HTTP_USER_AGENT", req["User-Agent"].c_str(), 1);
+    }
+    else
+    {
+        unsetenv("HTTP_USER_AGENT");
+    }
+
+
+    //
+    // partially cleanse the environment
+    //
+    setenv("PATH", "/usr/bin:/bin", 1);
+    unsetenv("LD_LIBRARY_PATH");
+
+    unsetenv("SSH_CLIENT");
+    unsetenv("SSH_TTY");
+    unsetenv("OLDPWD");
+    unsetenv("USER");
+    unsetenv("MAIL");
+    unsetenv("HOME");
+    unsetenv("LOGNAME");
+    unsetenv("USER");
 }
 
 
@@ -496,7 +672,7 @@ int markutil::HttpServer::run()
                     }
                     else
                     {
-                        this->prepareCgiEnv(head);
+                        this->prepareCgiEnv(sockfd, head);
 
                         // serve cgi
                         ret = this->cgi(sockfd, head);
@@ -538,8 +714,6 @@ int markutil::HttpServer::cgi(int fd, HttpHeader& head) const
     script_filename = this->cgibin() + script_filename;
 
     struct stat sb;
-    const unsigned canExec = (S_IRUSR | S_IXUSR);
-
 
     // assume error
     int ret = 1;
@@ -549,7 +723,7 @@ int markutil::HttpServer::cgi(int fd, HttpHeader& head) const
     if
     (
         ::stat(script_filename.c_str(), &sb) == 0
-     && (sb.st_mode & canExec) == canExec
+     && S_ISREG(sb.st_mode)
      && (pipe = ::popen(script_filename.c_str(), "r")) != NULL
     )
     {
