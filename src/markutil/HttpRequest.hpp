@@ -1,5 +1,5 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright 2011 Mark Olesen
+Copyright 2011-2012 Mark Olesen
 -------------------------------------------------------------------------------
 License
     This file is part of lsf-utils.
@@ -21,6 +21,7 @@ Class
     markutil::HttpRequest
 
 Description
+    Basic HTTP request with its associated headers.
 
 SourceFiles
     HttpRequest.cpp

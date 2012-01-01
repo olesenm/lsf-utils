@@ -162,30 +162,28 @@ void markutil::HttpServer::prepareCgiEnv(int fd, HttpHeader& head) const
     }
 
 
-    // Apache may not export this
+    setenv("REQUEST_METHOD", req.method().c_str(), 1);
+
+    // REQUEST_URI is "/cgi-bin/...?..."
+    setenv("REQUEST_URI", req.requestURI().c_str(), 1);
+
+    // QUERY_STRING is everything after the '?'
+    setenv("QUERY_STRING", req.query().toString().c_str(), 1);
+
+
+    // Apache may not export SERVER_URL
     // SERVER_URL="http://<host>[:<port>]/"
     setenv("SERVER_URL", (server_url + '/').c_str(), 1);
-
-
-    std::string script_uri = server_url + script_url;
-    server_url += "/";
-
-    setenv("REQUEST_METHOD", req.method().c_str(), 1);
 
     setenv("SERVER_PROTOCOL", req.protocol().c_str(), 1);
     setenv("SERVER_SOFTWARE", this->name().c_str(), 1);
 
     setenv("DOCUMENT_ROOT", this->root().c_str(), 1);
 
-    // QUERY_STRING is everything after the '?'
-    setenv("QUERY_STRING", req.query().toString().c_str(), 1);
-
-    // REQUEST_URI is "/cgi-bin/...?..."
-    setenv("REQUEST_URI", req.requestURI().c_str(), 1);
 
     // SCRIPT_URI="http://<host>[:<port>]/cgi-bin/..."
     // without the query string
-    setenv("SCRIPT_URI", script_uri.c_str(), 1);
+    setenv("SCRIPT_URI", (server_url + script_url).c_str(), 1);
 
     // SCRIPT_URL="/cgi-bin/..."
     // without the query string
@@ -209,7 +207,7 @@ void markutil::HttpServer::prepareCgiEnv(int fd, HttpHeader& head) const
     // script name includes the leading "/cgi-bin/"
     setenv("SCRIPT_NAME", script_name.c_str(), 1);
 
-    // remove leading "/cgi-bin"
+    // remove leading "/cgi-bin" for SCRIPT_FILENAME
     script_url.erase(0, cgiPrefix_.size());
     slash = script_url.find('/', 1);
     if (slash == std::string::npos)
@@ -242,9 +240,8 @@ void markutil::HttpServer::prepareCgiEnv(int fd, HttpHeader& head) const
         setenv("HTTP_USER_AGENT", req["User-Agent"].c_str(), 1);
     }
 
-
     //
-    // partially cleanse the environment
+    // partially cleanse environment
     //
     setenv("PATH", "/usr/bin:/bin", 1);
     unsetenv("LD_LIBRARY_PATH");

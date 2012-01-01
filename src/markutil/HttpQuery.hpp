@@ -1,5 +1,5 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright 2011 Mark Olesen
+Copyright 2011-2012 Mark Olesen
 -------------------------------------------------------------------------------
 License
     This file is part of lsf-utils.
@@ -21,9 +21,8 @@ Class
     markutil::HttpQuery
 
 Description
-
     Uses both ampersand '&' and semicolon ';' for separating fields,
-    as recommended
+    as recommended in
     http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2
 
     The parsing behaviour regarding named and unnamed parameters differs from
@@ -169,7 +168,7 @@ private:
         string_list  unnamed_;
 
         //! Named query parameters
-        param_map named_;
+        param_map    named_;
 
 
         //! Null-string for empty responses
