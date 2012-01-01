@@ -106,12 +106,11 @@ bool markutil::HttpServer::setPath
         else
         {
             // resolve relative -> abs path
-            char buf[255];
-            if (!::getcwd(buf, 255))
+            if (!::getcwd(buffer, BufSize))
             {
                 return false;
             }
-            target = buf;
+            target = buffer;
             target += '/';
             target += path;
         }
