@@ -106,6 +106,7 @@ LIB2SRCS = \
     markutil/HttpQuery.cpp \
     markutil/HttpRequest.cpp \
     markutil/HttpServer.cpp \
+    markutil/SocketInfo.cpp \
     markutil/SocketServer.cpp
 
 LIB2OBJS = \
@@ -114,6 +115,7 @@ LIB2OBJS = \
     markutil/HttpQuery.o \
     markutil/HttpRequest.o \
     markutil/HttpServer.o \
+    markutil/SocketInfo.o \
     markutil/SocketServer.o
 
 LDFLAGS += -g -lm -lnsl -ldl

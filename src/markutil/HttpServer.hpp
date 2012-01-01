@@ -1,5 +1,5 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright 2011 Mark Olesen
+Copyright 2011-2012 Mark Olesen
 -------------------------------------------------------------------------------
 License
     This file is part of lsf-utils.
@@ -38,6 +38,7 @@ Notes
 #define MARK_HTTP_SERVER_H
 
 #include "markutil/HttpHeader.hpp"
+#include "markutil/SocketInfo.hpp"
 #include "markutil/SocketServer.hpp"
 
 #include <iostream>
@@ -73,6 +74,10 @@ class HttpServer
 
         //! \brief The cgi-bin
         std::string cgibin_;
+
+        //! \brief The host/peer socket information
+        SocketInfo socketinfo_;
+
 
     // Private Member Functions
 
@@ -115,9 +120,6 @@ public:
         //! \brief Convenience routine for daemonizing a process
         //  optionally suppress exit and handle in caller instead
         static int daemonize(const bool doNotExit=false);
-
-        //! \brief Fully-qualified hostname
-        static std::string hostName();
 
 
     // Constructors

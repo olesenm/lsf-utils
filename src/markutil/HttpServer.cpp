@@ -1,5 +1,5 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright 2011 Mark Olesen
+Copyright 2011-2012 Mark Olesen
 -------------------------------------------------------------------------------
 License
     This file is part of lsf-utils.
@@ -26,15 +26,9 @@ License
 #include <cstdlib>
 #include <string>
 #include <fcntl.h>
-#include <netdb.h>
 #include <signal.h>
 #include <unistd.h>
-#include <sstream>
 #include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <errno.h>
 
 #include "fdstream/fdstream.hpp"
 
@@ -91,117 +85,6 @@ int markutil::HttpServer::daemonize(const bool doNotExit)
 }
 
 
-std::string markutil::HttpServer::hostName()
-{
-    char buf[128];
-    ::gethostname(buf, sizeof(buf));
-
-    // implementation as per hostname from net-tools
-    struct hostent *hp = ::gethostbyname(buf);
-    if (hp)
-    {
-        return hp->h_name;
-    }
-
-    return buf;
-}
-
-
-// local scope
-static bool getAddrAndPort
-(
-    int fd,
-    const std::string& prefix,
-    std::string& sock_addr,
-    std::string& sock_port,
-    std::string& sock_host
-)
-{
-    sock_addr.clear();
-    sock_port.clear();
-    sock_host.clear();
-
-    // get socket information
-    struct sockaddr_in sockAddr;
-    socklen_t sin_len = sizeof(sockAddr);
-    if (prefix == "REMOTE")
-    {
-        if
-        (
-            ::getpeername
-            (
-                fd,
-                reinterpret_cast<struct sockaddr *>(&sockAddr),
-                &sin_len
-            )
-         || !sin_len
-        )
-        {
-            return false;
-        }
-    }
-    else if (prefix == "SERVER")
-    {
-        if
-        (
-            ::getsockname
-            (
-                fd,
-                reinterpret_cast<struct sockaddr *>(&sockAddr),
-                &sin_len
-            )
-         || !sin_len
-        )
-        {
-            return false;
-        }
-    }
-    else
-    {
-        return false;
-    }
-
-    // convert IP and PORT
-    // PORT is always smaller that any IP-Address in string form
-    char buf[INET_ADDRSTRLEN];
-
-    sprintf(buf, "%d", ntohs(sockAddr.sin_port));
-    sock_port = buf;
-
-    if
-    (
-        inet_ntop
-        (
-            AF_INET,
-            &(sockAddr.sin_addr.s_addr),
-            buf,
-            sizeof(buf)
-        )
-    )
-    {
-        sock_addr = buf;
-
-        struct hostent *hp = ::gethostbyaddr
-        (
-            &(sockAddr.sin_addr.s_addr),
-            sizeof(sockAddr.sin_addr.s_addr),
-            AF_INET
-        );
-        if (hp)
-        {
-            sock_host = hp->h_name;
-        }
-    }
-    else
-    {
-        return false;
-    }
-
-    return true;
-}
-
-
-
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
 bool markutil::HttpServer::setPath
@@ -256,100 +139,27 @@ void markutil::HttpServer::prepareCgiEnv(int fd, HttpHeader& head) const
     {
         setenv("HTTP_HOST", http_host.c_str(), 1);
     }
-    else
-    {
-        unsetenv("HTTP_HOST");
-    }
 
     //
-    // get REMOTE_ADDR, REMOTE_PORT from socket information
+    // REMOTE_ADDR, REMOTE_PORT from socket information
     // and REMOTE_HOST from gethostbyaddr
     //
-    std::string remote_addr, remote_port, remote_host;
-    getAddrAndPort(fd, "REMOTE", remote_addr, remote_port, remote_host);
-    if (remote_addr.size() && remote_port.size())
-    {
-        setenv("REMOTE_ADDR", remote_addr.c_str(), 1);
-        setenv("REMOTE_PORT", remote_port.c_str(), 1);
-        if (remote_host.size())
-        {
-            setenv("REMOTE_HOST", remote_host.c_str(), 1);
-        }
-        else
-        {
-            unsetenv("REMOTE_HOST");
-        }
-    }
-    else
-    {
-        unsetenv("REMOTE_ADDR");
-        unsetenv("REMOTE_PORT");
-        unsetenv("REMOTE_HOST");
-    }
+    setenv("REMOTE_ADDR", socketinfo_.peerAddr().c_str(), 1);
+    setenv("REMOTE_HOST", socketinfo_.peerName().c_str(), 1);
+    setenv("REMOTE_PORT", socketinfo_.peerPort().c_str(), 1);
 
     //
-    // get SERVER_ADDR, SERVER_PORT from socket information
+    // SERVER_ADDR, SERVER_PORT from socket information
     // and SERVER_NAME from gethostbyaddr
     //
-    std::string server_addr, server_port, server_name;
-    getAddrAndPort(fd, "SERVER", server_addr, server_port, server_name);
-    if (server_addr.size() && server_port.size())
+    setenv("SERVER_ADDR", socketinfo_.hostAddr().c_str(), 1);
+    setenv("SERVER_NAME", socketinfo_.hostName().c_str(), 1);
+    setenv("SERVER_PORT", socketinfo_.hostPort().c_str(), 1);
+
+    std::string server_url = "http://" + socketinfo_.hostName();
+    if (socketinfo_.hostPort().size() && socketinfo_.hostPort() != "80")
     {
-        setenv("SERVER_ADDR", server_addr.c_str(), 1);
-    }
-    else
-    {
-        unsetenv("SERVER_ADDR");
-    }
-
-    if (server_port.empty())
-    {
-        server_port = "80";    // default HTTP port
-    }
-
-    //
-    // if reverse lookup of SERVER_ADDR -> SERVER_NAME failed ...
-    //
-    if (server_name.empty())
-    {
-        if (http_host.size())
-        {
-            // 1. From the "Host:" - this represents the externally seen name
-            server_name = http_host;
-
-            // split into <host>:<port>
-            size_t colon = server_name.find(':');
-            if (colon != std::string::npos)
-            {
-                server_port = server_name.substr(colon + 1);
-                server_name.resize(colon);
-
-                // should not happen
-                if (server_port.empty())
-                {
-                    server_port = "80";    // default HTTP port
-                }
-            }
-        }
-        else
-        {
-            // 2. Just use the host-name directly and hope it can also be
-            //    seen externally
-            server_name = this->hostName();
-
-            std::ostringstream oss;
-            oss << port_;
-            server_port = oss.str();
-        }
-    }
-
-    setenv("SERVER_NAME", server_name.c_str(), 1);
-    setenv("SERVER_PORT", server_port.c_str(), 1);
-
-    std::string server_url = "http://" + server_name;
-    if (server_port != "80")
-    {
-        server_url += ":" + server_port;
+        server_url += ":" + socketinfo_.hostPort();
     }
 
 
@@ -363,8 +173,6 @@ void markutil::HttpServer::prepareCgiEnv(int fd, HttpHeader& head) const
 
     setenv("REQUEST_METHOD", req.method().c_str(), 1);
 
-    setenv("SERVER_NAME", server_name.c_str(), 1);
-    setenv("SERVER_PORT", server_port.c_str(), 1);
     setenv("SERVER_PROTOCOL", req.protocol().c_str(), 1);
     setenv("SERVER_SOFTWARE", this->name().c_str(), 1);
 
@@ -434,10 +242,6 @@ void markutil::HttpServer::prepareCgiEnv(int fd, HttpHeader& head) const
     {
         setenv("HTTP_USER_AGENT", req["User-Agent"].c_str(), 1);
     }
-    else
-    {
-        unsetenv("HTTP_USER_AGENT");
-    }
 
 
     //
@@ -445,15 +249,6 @@ void markutil::HttpServer::prepareCgiEnv(int fd, HttpHeader& head) const
     //
     setenv("PATH", "/usr/bin:/bin", 1);
     unsetenv("LD_LIBRARY_PATH");
-
-    unsetenv("SSH_CLIENT");
-    unsetenv("SSH_TTY");
-    unsetenv("OLDPWD");
-    unsetenv("USER");
-    unsetenv("MAIL");
-    unsetenv("HOME");
-    unsetenv("LOGNAME");
-    unsetenv("USER");
 }
 
 
@@ -627,6 +422,9 @@ int markutil::HttpServer::run()
             // fill with request
             head.request().readHeader(is);
 
+            // fill host/peer information
+            socketinfo_.setInfo(sockfd);
+
 
             // check for cgi-bin
             const std::string& url = head.request().path();
@@ -787,10 +585,14 @@ int markutil::HttpServer::server_info(std::ostream& os, HttpHeader& head) const
             << "<hr /><h3>Server Info</h3><blockquote>"
             << "Date: " << head["Date"] << "<br />"
             << "Server-Software: " << this->name() << "<br />"
-            << "Server-Name: " << this->hostName() << "<br />"
+            << "Server-Address: " << socketinfo_.hostAddr() << "<br />"
+            << "Server-Name: " << socketinfo_.hostName() << "<br />"
             << "Server-Port: " << this->port_ << "<br />"
+            << "Remote-Address: " << socketinfo_.peerAddr() << "<br />"
+            << "Remote-Name: " << socketinfo_.peerName() << "<br />"
+            << "Remote-Port: " << socketinfo_.peerPort() << "<br />"
             << "Document-Root: " << this->root() << "<br />"
-            << "cgi-bin: " << this->cgibin() << "<br />"
+            << "CGI-bin: " << this->cgibin() << "<br />"
             << "Request: ";
 
         xmlEscapeChars
