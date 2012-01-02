@@ -1,5 +1,5 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright (c) 2011-2011 Mark Olesen
+Copyright (c) 2011-2012 Mark Olesen
 -------------------------------------------------------------------------------
 License
     This file is part of lsf-utils
@@ -23,7 +23,6 @@ License
 
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
-
 
 const char* const lsfutil::xml::indent0 = "  ";
 const char* const lsfutil::xml::indent  = "    ";
@@ -51,33 +50,32 @@ std::ostream& lsfutil::xml::printList
             ++iter
         )
         {
-            os  << indent << lsfutil::xml::indent0
-                << Tag(elemTag, *iter) << "\n";
+            os  << xml::indent << xml::indent0
+                << xml::Tag(elemTag, *iter) << "\n";
         }
 
-        os  <<  indent << "</" << listTag << ">\n";
+        os  <<  xml::indent << "</" << listTag << ">\n";
     }
 
     return os;
 }
 
 
-// * * * * * * * * * * * * * * * Local Functions * * * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
+std::string lsfutil::xml::TimeTag::iso8601() const
+{
+    char buf[32];
+    ::strftime
+    (
+        buf,
+        sizeof(buf),
+        "%Y-%m-%dT%H:%M:%S",
+        ::localtime(&epoch_)
+    );
 
-// * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * * Friend Functions  * * * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * * Friend Operators * * * * * * * * * * * * * * //
+    return buf;
+}
 
 
 /* ************************************************************************* */

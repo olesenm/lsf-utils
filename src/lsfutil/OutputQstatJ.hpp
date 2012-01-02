@@ -1,5 +1,5 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright (c) 2011-2011 Mark Olesen
+Copyright (c) 2011-2012 Mark Olesen
 -------------------------------------------------------------------------------
 License
     This file is part of lsf-utils
@@ -48,13 +48,14 @@ class OutputQstatJ
 {
     // Private Member Functions
 
+        //- Print job information in XML format
         static std::ostream& print(std::ostream&, const LsfJobEntry&);
-        static std::ostream& print(std::ostream&, const LsfJobSubEntry&);
+
 
 public:
 
+        //- Print job list information in XML format
         static std::ostream& print(std::ostream&, const LsfJobList&);
-
 
 };
 

@@ -1,5 +1,5 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright (c) 2011-2011 Mark Olesen
+Copyright (c) 2011-2012 Mark Olesen
 -------------------------------------------------------------------------------
 License
     This file is part of lsf-utils
@@ -17,8 +17,11 @@ License
     You should have received a copy of the GNU General Public License
     along with lsf-utils. If not, see <http://www.gnu.org/licenses/>.
 
+Application
+    lsf-direct
+
 Description
-    --
+    Test code for rapid prototyping lsf-server output.
 
 \*---------------------------------------------------------------------------*/
 
@@ -38,7 +41,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    markutil::HttpRequest req("GET", argv[1]);
+    markutil::HttpRequest req(markutil::HttpRequest::GET, argv[1]);
 
     std::string url = req.path();
 

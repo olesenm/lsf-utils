@@ -1,5 +1,5 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright 2011 Mark Olesen
+Copyright (c) 2011-2012 Mark Olesen
 -------------------------------------------------------------------------------
 License
     This file is part of lsf-utils.
@@ -17,13 +17,11 @@ License
     You should have received a copy of the GNU General Public License
     along with lsf-utils. If not, see <http://www.gnu.org/licenses/>.
 
-Class
-
+Application
+    normalizePath
 
 Description
-
-SourceFiles
-    normalizePath
+    test that decoding paths, elimination of '..' etc works as expected
 
 \*---------------------------------------------------------------------------*/
 

@@ -1,5 +1,5 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright (c) 2011-2011 Mark Olesen
+Copyright (c) 2011-2012 Mark Olesen
 -------------------------------------------------------------------------------
 License
     This file is part of lsf-utils
@@ -17,14 +17,18 @@ License
     You should have received a copy of the GNU General Public License
     along with lsf-utils. If not, see <http://www.gnu.org/licenses/>.
 
+Namespace
+    lsfutil::xml
+
 Description
-    --
+    Namespace for XML-related output routines
 
 \*---------------------------------------------------------------------------*/
 
 #ifndef LSF_XMLUTILS_H
 #define LSF_XMLUTILS_H
 
+#include <ctime>
 #include <string>
 #include <vector>
 #include <iostream>
@@ -36,10 +40,13 @@ namespace lsfutil
 
 namespace xml
 {
+    //- half indentation
     extern const char* const indent0;
+
+    //- Full indentation
     extern const char* const indent;
 
-
+    //- Simple output of a list
     std::ostream& printList
     (
         std::ostream& os,
@@ -53,24 +60,28 @@ namespace xml
                           Class xml::String Declaration
 \*---------------------------------------------------------------------------*/
 
+//! Helper to transliterate reserved XML characters on output
 class String
 {
     const std::string& str_;
 
 public:
 
+    //- Construct from a const reference
     String(const std::string& s)
     :
         str_(s)
     {}
 
 
+    //- The size of the referenced string
     inline bool size() const
     {
         return str_.size();
     }
 
 
+    //- Output with reserved XML characters transliterated
     std::ostream& print(std::ostream& os) const
     {
         for
@@ -115,6 +126,7 @@ public:
     }
 
 
+    //- Output with reserved XML characters transliterated
     friend std::ostream& operator<<(std::ostream& os, const String& s)
     {
         return s.print(os);
@@ -127,13 +139,15 @@ public:
                           Class xml::Tag Declaration
 \*---------------------------------------------------------------------------*/
 
+//! Helper to output a tag with string content
 class Tag
 {
     const std::string tag_;
-    const String val_;
+    const xml::String val_;
 
 public:
 
+    //- Construct from a tag name and the value
     Tag(const std::string& tag, const std::string& val)
     :
         tag_(tag),
@@ -141,6 +155,7 @@ public:
     {}
 
 
+    //- Output with reserved XML characters transliterated
     std::ostream& print(std::ostream& os) const
     {
         os  << '<' << tag_ << '>'
@@ -151,6 +166,7 @@ public:
     }
 
 
+    //- Output with reserved XML characters transliterated
     friend std::ostream& operator<<(std::ostream& os, const Tag& t)
     {
         return t.print(os);
@@ -162,6 +178,7 @@ public:
                         Class xml::TimeTag Declaration
 \*---------------------------------------------------------------------------*/
 
+//! Helper to output a time tag in ISO-8601 format
 class TimeTag
 {
     const std::string tag_;
@@ -169,28 +186,18 @@ class TimeTag
 
 public:
 
+    //- Construct from a tag name and the time value
     TimeTag(const std::string& tag, const time_t& epoch)
     :
         tag_(tag),
         epoch_(epoch)
     {}
 
-    //! Express epoch in iso-8601 form
-    std::string iso8601() const
-    {
-        char buf[32];
-        ::strftime
-        (
-            buf,
-            sizeof(buf),
-            "%Y-%m-%dT%H:%M:%S",
-            ::localtime(&epoch_)
-        );
-
-        return buf;
-    }
+    //- Express epoch in iso-8601 form
+    std::string iso8601() const;
 
 
+    //- Output time in iso-8601 format with the epoch as an attribute
     std::ostream& print(std::ostream& os) const
     {
         os  << '<' << tag_ << " epoch='"
@@ -202,6 +209,7 @@ public:
     }
 
 
+    //- Output time in iso-8601 format with epoch as an attribute
     friend std::ostream& operator<<(std::ostream& os, const TimeTag& tt)
     {
         return tt.print(os);

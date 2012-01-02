@@ -1,5 +1,5 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright (c) 2011-2011 Mark Olesen
+Copyright (c) 2011-2012 Mark Olesen
 -------------------------------------------------------------------------------
 License
     This file is part of lsf-utils
@@ -21,16 +21,6 @@ License
 
 #include "lsfutil/OutputQstatJ.hpp"
 #include "lsfutil/XmlUtils.hpp"
-
-
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * * * Local Functions * * * * * * * * * * * * * * //
-
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
@@ -152,18 +142,6 @@ lsfutil::OutputQstatJ::print
 }
 
 
-std::ostream&
-lsfutil::OutputQstatJ::print
-(
-    std::ostream& os,
-    const lsfutil::LsfJobSubEntry& sub
-)
-{
-    return os;
-}
-
-
-
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
 std::ostream&
@@ -211,16 +189,6 @@ lsfutil::OutputQstatJ::print
 
     return os;
 }
-
-
-
-// * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * * Friend Functions  * * * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * * Friend Operators * * * * * * * * * * * * * * //
 
 
 /* ************************************************************************* */

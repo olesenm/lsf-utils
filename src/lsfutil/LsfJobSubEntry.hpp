@@ -1,5 +1,5 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright (c) 2011-2011 Mark Olesen
+Copyright (c) 2011-2012 Mark Olesen
 -------------------------------------------------------------------------------
 License
     This file is part of lsf-utils
@@ -17,8 +17,15 @@ License
     You should have received a copy of the GNU General Public License
     along with lsf-utils. If not, see <http://www.gnu.org/licenses/>.
 
+Class
+    lsfutil::LsfJobSubEntry
+
 Description
-    --
+    Encapsulation of LSF \c submit structure into a C++ class.
+
+    Since the primary purpose of the class it to avoid memory
+    allocation/de-allocation issues and provide other C++ conveniences,
+    almost all information is available directly as public members.
 
 \*---------------------------------------------------------------------------*/
 
@@ -78,10 +85,10 @@ public:
 
 
         //- Time when job slots are reserved
-        //- Dispatch the job on or after beginTime,
-        // where beginTime is the number of seconds since
-        // 00:00:00 GMT, Jan. 1, 1970 (See time(), ctime()). If
-        // beginTime is 0, start the job as soon as possible.
+        //  Dispatch the job on or after beginTime,
+        //  where beginTime is the number of seconds since
+        //  00:00:00 GMT, Jan. 1, 1970 (See time(), ctime()). If
+        //  beginTime is 0, start the job as soon as possible.
         time_t beginTime;
 
         //- The job termination deadline.
@@ -111,11 +118,10 @@ public:
         std::string command;
 
 
-        // The directory where the chk directory for this job checkpoint
-        // files will be created. When a job is checkpointed, its
-        // checkpoint files are placed in chkpntDir/chk. chkpntDir can be
-        // a relative or absolute path name.
-        //
+        //- Where the chk directory for this job checkpoint files will be created.
+        //  When a job is checkpointed, its
+        //  checkpoint files are placed in chkpntDir/chk. chkpntDir can be
+        //  a relative or absolute path name.
         std::string chkpntDir;
 
         //- The job pre-execution command
@@ -147,7 +153,7 @@ public:
         //- Post-execution commands specified by -Ep option of bsub and bmod.
         std::string postExecCmd;
 
-        // Current working directory specified by -cwd option of bsub and bmod.
+        //- Current working directory specified by -cwd option of bsub and bmod.
         std::string cwd;
 
         //- Job resize notification command to be invoked on the first
@@ -184,7 +190,9 @@ public:
 
         // Write
 
-        std::ostream& dump(std::ostream&) const;
+            //- Raw dump of information in text format
+            std::ostream& dump(std::ostream&) const;
+
 
     // Member Operators
 

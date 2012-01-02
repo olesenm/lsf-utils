@@ -1,5 +1,5 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright 2011-2012 Mark Olesen
+Copyright (c) 2011-2012 Mark Olesen
 -------------------------------------------------------------------------------
 License
     This file is part of lsf-utils.
@@ -57,7 +57,7 @@ public:
     //! known request methods
     enum MethodType
     {
-        UNKNOWN = 0,  // unknown/invalid
+        UNKNOWN = 0,  //!< unknown/invalid
         OPTIONS,
         GET,
         HEAD,
@@ -71,6 +71,12 @@ public:
 private:
 
     // Private data
+
+        //- Lookup method enum from string
+        typedef std::map<std::string, MethodType> MethodLookupType;
+
+        //- Lookup method enum from string
+        static MethodLookupType methodLookup_;
 
         //- The method as an enumeration
         MethodType type_;
@@ -90,8 +96,14 @@ private:
 
     // Private Member Functions
 
+        //- populate the lookup table
+        static void populateLookup();
+
         //- Lookup enumerated method-type from string content
         static MethodType lookupMethod(const std::string& method);
+
+        //- Lookup enumerated method-type from string content
+        static std::string lookupMethod(MethodType method);
 
 
 public:
@@ -102,7 +114,7 @@ public:
         HttpRequest();
 
         //! Construct a new request, can also change requestURI later
-        HttpRequest(const std::string& method, const std::string& url);
+        HttpRequest(MethodType method, const std::string& url);
 
         //! Construct request by reading from an input stream
         //  reads until a blank line
@@ -157,7 +169,7 @@ public:
 
         // Write
 
-            //! \brief Write request output stream
+            //! \brief Write request to output stream
             std::ostream& print(std::ostream&) const;
 
 

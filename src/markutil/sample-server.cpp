@@ -1,5 +1,5 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright 2011 Mark Olesen
+Copyright (c) 2011-2012 Mark Olesen
 -------------------------------------------------------------------------------
 License
     This file is part of lsf-utils.
@@ -39,8 +39,12 @@ SourceFiles
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-//! specialization of markutil::HttpServer
-class MyServer
+//! \class SampleServer
+//! \brief specialization of markutil::HttpServer
+//
+//! A simple sample of using the classes to build a web-server with
+//! specialized responses
+class SampleServer
 :
     public markutil::HttpServer
 {
@@ -51,7 +55,7 @@ public:
     // Constructors
 
         //! Create a server on specified port
-        MyServer(unsigned short port, const std::string& root)
+        SampleServer(unsigned short port, const std::string& root)
         :
             ParentClass(port)
         {
@@ -209,8 +213,6 @@ public:
 
             return 0;
         }
-
-
 };
 
 
@@ -266,7 +268,7 @@ int main(int argc, char **argv)
 
     markutil::HttpServer::daemonize();
 
-    MyServer server(port, docRoot);
+    SampleServer server(port, docRoot);
     server.cgibin(cgiBin);
 
     server.listen(64);

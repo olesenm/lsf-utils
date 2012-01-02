@@ -1,5 +1,5 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright 2011-2012 Mark Olesen
+Copyright (c) 2011-2012 Mark Olesen
 -------------------------------------------------------------------------------
 License
     This file is part of lsf-utils.
@@ -95,8 +95,13 @@ class HttpServer
 public:
 
     // Typedefs
+    //- The header type
     typedef markutil::HttpHeader  HeaderType;
+
+    //- The query type
     typedef markutil::HttpQuery   QueryType;
+
+    //- The request type
     typedef markutil::HttpRequest RequestType;
 
 

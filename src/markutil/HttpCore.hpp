@@ -1,5 +1,5 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright 2011 Mark Olesen
+Copyright (c) 2011-2012 Mark Olesen
 -------------------------------------------------------------------------------
 License
     This file is part of lsf-utils.
@@ -54,6 +54,7 @@ public:
     //  may not work for non-ASCII, but HTTP headers are ASCII anynow
     struct noCaseCmp
     {
+        //! case-insensitive comparison operator
         bool operator()(const std::string& s1, const std::string& s2) const
         {
             return strcasecmp(s1.c_str(), s2.c_str()) < 0;
@@ -122,7 +123,7 @@ public:
             const std::string& str
         );
 
-        //! Decode %<hex><hex> and '+' characters
+        //! Decode %[hex][hex] and '+' characters
         static std::string httpDecodeUrl
         (
             const std::string& str,

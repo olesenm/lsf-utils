@@ -1,5 +1,5 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright 2011 Mark Olesen
+Copyright (c) 2011-2012 Mark Olesen
 -------------------------------------------------------------------------------
 License
     This file is part of lsf-utils.
@@ -55,29 +55,28 @@ std::ostream& operator<<(std::ostream&, const HttpHeader&);
                          Class HttpHeader Declaration
 \*---------------------------------------------------------------------------*/
 
-
 class HttpHeader
 :
     public HttpCore
 {
 public:
 
-    //! short-list of common response codes
+    //- short-list of common response codes
     enum StatusCode
     {
-        INVALID = 0,
-        _200_OK = 200,
-        _301_MOVED_PERMANENTLY = 301,
-        _302_FOUND = 302,
-        _304_NOT_MODIFIED = 304,
-        _400_BAD_REQUEST = 400,
-        _401_UNAUTHORIZED = 401,
-        _403_FORBIDDEN = 403,
-        _404_NOT_FOUND = 404,
-        _405_METHOD_NOT_ALLOWED = 405,
-        _500_INTERNAL_SERVER_ERROR = 500,
-        _501_NOT_IMPLEMENTED = 501,
-        _503_SERVICE_UNAVAILABLE = 503,
+        INVALID = 0,                       //!< invalid
+        _200_OK = 200,                     //!< OK
+        _301_MOVED_PERMANENTLY = 301,      //!< MOVED PERMANENTLY
+        _302_FOUND = 302,                  //!< FOUND
+        _304_NOT_MODIFIED = 304,           //!< NOT MODIFIED
+        _400_BAD_REQUEST = 400,            //!< BAD REQUEST
+        _401_UNAUTHORIZED = 401,           //!< UNAUTHORIZED
+        _403_FORBIDDEN = 403,              //!< FORBIDDEN
+        _404_NOT_FOUND = 404,              //!< NOT FOUND
+        _405_METHOD_NOT_ALLOWED = 405,     //!< METHOD NOT ALLOWED
+        _500_INTERNAL_SERVER_ERROR = 500,  //!< INTERNAL SERVER ERROR
+        _501_NOT_IMPLEMENTED = 501,        //!< NOT IMPLEMENTED
+        _503_SERVICE_UNAVAILABLE = 503,    //!< SERVICE UNAVAILABLE
     };
 
 
@@ -85,16 +84,16 @@ private:
 
     // Private data
 
-        //! The response code to be sent back
+        //- The response code to be sent back
         StatusCode status_;
 
-        //! The originating request
+        //- The originating request
         HttpRequest request_;
 
 
     // Private Member Functions
 
-        //! Populate with header with commonly used information
+        //- Populate with header with commonly used information
         //  General Header Fields (HTTP 1.1 Section 4.5)
         void setDefaults();
 
@@ -105,20 +104,20 @@ public:
     // Static Member Functions
 
 
-        //! Provide text representation of the status code
+        //- Provide text representation of the status code
         static const char *statusAsText(StatusCode code);
 
 
     // Constructors
 
-        //! Construct null
+        //- Construct null
         HttpHeader();
 
-        //! Construct with given status
+        //- Construct with given status
         explicit HttpHeader(StatusCode code);
 
 
-    //! Destructor
+    //- Destructor
     ~HttpHeader();
 
 
@@ -126,50 +125,50 @@ public:
 
         // Access
 
-            //! Special treatment for commonly-used "Content-Type" header
+            //- Special treatment for commonly-used "Content-Type" header
             //  Avoids potential typing mistakes
             const std::string& contentType() const;
 
-            //! Special treatment for commonly-used "Content-Length" header
+            //- Special treatment for commonly-used "Content-Length" header
             //  Avoids potential typing mistakes
             const std::string& contentLength() const;
 
-            //!- Read-only access to the originating request
+            //- Read-only access to the originating request
             const HttpRequest& request() const;
 
-            //! Provide text representation of the status code
+            //- Provide text representation of the status code
             const char *statusAsText() const;
 
 
         // Edit
 
-            //! Sets commonly-used "Content-Type" header
+            //- Sets commonly-used "Content-Type" header
             //  Avoids potential typing mistakes
             //  If the mime-type is missing a '/', lookup from extension
             HttpHeader& contentType(const std::string& val);
 
-            //! Sets commonly-used "Content-Length" header
+            //- Sets commonly-used "Content-Length" header
             //  Avoids potential typing mistakes
             HttpHeader& contentLength(const std::string& val);
 
-            //! Sets commonly-used "Content-Length" header from an integer
+            //- Sets commonly-used "Content-Length" header from an integer
             //  Avoids potential typing mistakes
             HttpHeader& contentLength(const unsigned val);
 
-            //! Read/write access to the originating request
+            //- Read/write access to the originating request
             HttpRequest& request();
 
-            //! Alter the status code
+            //- Alter the status code
             HttpHeader& status(StatusCode code);
 
 
-           // Write
+        // Write
 
-            //! Output information as XML/HTML content
+            //- Output information as XML/HTML content
             //  Useful for generated error messages
             std::ostream& html(std::ostream&) const;
 
-            //! Output header contents, optionaly with html
+            //- Output header contents, optionally with html
             std::ostream& print(std::ostream&, bool withHtml=false) const;
 
 
@@ -178,12 +177,13 @@ public:
         using HttpCore::operator();
         using HttpCore::operator[];
 
-        //! Alter the status code
+        //- Alter the status code
         HttpHeader& operator()(StatusCode);
 
 
     // IOstream Operators
 
+        //- Output header contents
         friend std::ostream& operator<<(std::ostream&, const HttpHeader&);
 
 };

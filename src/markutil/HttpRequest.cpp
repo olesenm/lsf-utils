@@ -1,5 +1,5 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright 2011 Mark Olesen
+Copyright (c) 2011-2012 Mark Olesen
 -------------------------------------------------------------------------------
 License
     This file is part of lsf-utils.
@@ -27,6 +27,12 @@ License
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+
+
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+
+
+markutil::HttpRequest::MethodLookupType markutil::HttpRequest::methodLookup_;
 
 
 // * * * * * * * * * * * * * * * Local Functions * * * * * * * * * * * * * * //
@@ -59,31 +65,34 @@ static std::string getToken(const std::string& buf, size_t& beg)
 
 // * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
 
+void markutil::HttpRequest::populateLookup()
+{
+    if (methodLookup_.empty())
+    {
+        methodLookup_["OPTIONS"] = OPTIONS;
+        methodLookup_["GET"] = GET;
+        methodLookup_["HEAD"] =  HEAD;
+        methodLookup_["POST"] = POST;
+        methodLookup_["PUT"] = PUT;
+        methodLookup_["DELETE"] = DELETE;
+        methodLookup_["TRACE"] = TRACE;
+        methodLookup_["CONNECT"] = CONNECT;
+    }
+}
+
+
 markutil::HttpRequest::MethodType
 markutil::HttpRequest::lookupMethod(const std::string& method)
 {
-    typedef std::map<std::string, MethodType> LookupType;
-    static LookupType lookup;
-
-    if (lookup.empty())
-    {
-        lookup["OPTIONS"] = OPTIONS;
-        lookup["GET"] = GET;
-        lookup["HEAD"] =  HEAD;
-        lookup["POST"] = POST;
-        lookup["PUT"] = PUT;
-        lookup["DELETE"] = DELETE;
-        lookup["TRACE"] = TRACE;
-        lookup["CONNECT"] = CONNECT;
-    }
+    populateLookup();
 
     if (method.empty())
     {
         return UNKNOWN;
     }
 
-    LookupType::const_iterator iter = lookup.find(method);
-    if (iter == lookup.end())
+    MethodLookupType::const_iterator iter = methodLookup_.find(method);
+    if (iter == methodLookup_.end())
     {
         return UNKNOWN;
     }
@@ -91,6 +100,27 @@ markutil::HttpRequest::lookupMethod(const std::string& method)
     {
         return iter->second;
     }
+}
+
+
+std::string markutil::HttpRequest::lookupMethod(MethodType method)
+{
+    populateLookup();
+
+    for
+    (
+        MethodLookupType::const_iterator iter = methodLookup_.begin();
+        iter != methodLookup_.end();
+        ++iter
+    )
+    {
+        if (iter->second == method)
+        {
+            return iter->first;
+        }
+    }
+
+    return "";
 }
 
 
@@ -108,12 +138,12 @@ markutil::HttpRequest::HttpRequest()
 
 markutil::HttpRequest::HttpRequest
 (
-    const std::string& method,
+    MethodType method,
     const std::string& url
 )
 :
-    type_(lookupMethod(method)),
-    method_(method),
+    type_(method),
+    method_(lookupMethod(method)),
     path_(),
     query_(),
     httpver_()

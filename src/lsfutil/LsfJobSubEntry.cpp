@@ -1,5 +1,5 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright (c) 2011-2011 Mark Olesen
+Copyright (c) 2011-2012 Mark Olesen
 -------------------------------------------------------------------------------
 License
     This file is part of lsf-utils
@@ -23,15 +23,6 @@ License
 
 #include <iostream>
 #include <lsf/lsbatch.h>
-
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
-
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -122,15 +113,15 @@ lsfutil::LsfJobSubEntry::~LsfJobSubEntry()
 
 std::ostream& lsfutil::LsfJobSubEntry::dump(std::ostream& os) const
 {
-    os  << "jobName: " << jobName << "\n";
-    os  << "queue: " << queue << "\n";
-    os  << "numProcessors: " << numProcessors << "\n";
-    os  << "dependCond: " << dependCond << "\n";
-    os  << "beginTime: " << beginTime << "\n";
-    os  << "termTime: " << termTime << "\n";
-    os  << "inFile: " << inFile << "\n";
-    os  << "outFile: " << outFile << "\n";
-    os  << "errFile: " << errFile << "\n";
+    os  << "jobName: " << jobName << "\n"
+        << "queue: " << queue << "\n"
+        << "numProcessors: " << numProcessors << "\n"
+        << "dependCond: " << dependCond << "\n"
+        << "beginTime: " << beginTime << "\n"
+        << "termTime: " << termTime << "\n"
+        << "inFile: " << inFile << "\n"
+        << "outFile: " << outFile << "\n"
+        << "errFile: " << errFile << "\n";
 
     if (command.size() && command[0] == '#')
     {
@@ -141,20 +132,20 @@ std::ostream& lsfutil::LsfJobSubEntry::dump(std::ostream& os) const
         os  << "command: " << command << "\n";
     }
 
-    os  << "chkpntDir: " << chkpntDir << "\n";
-    os  << "preExecCmd: " << preExecCmd << "\n";
-    os  << "mailUser: " << mailUser << "\n";
-    os  << "projectName: " << projectName << "\n";
-    os  << "loginShell: " << loginShell << "\n";
-    os  << "userGroup: " << userGroup << "\n";
-    os  << "jobGroup: " << jobGroup << "\n";
-    os  << "licenseProject: " << licenseProject << "\n";
-    os  << "app: " << app << "\n";
-    os  << "postExecCmd: " << postExecCmd << "\n";
-    os  << "cwd: " << cwd << "\n";
-    os  << "notifyCmd: " << notifyCmd << "\n";
-    os  << "jobDescription: " << jobDescription << "\n";
-    os  << "resReq: " << resReq << "\n";
+    os  << "chkpntDir: " << chkpntDir << "\n"
+        << "preExecCmd: " << preExecCmd << "\n"
+        << "mailUser: " << mailUser << "\n"
+        << "projectName: " << projectName << "\n"
+        << "loginShell: " << loginShell << "\n"
+        << "userGroup: " << userGroup << "\n"
+        << "jobGroup: " << jobGroup << "\n"
+        << "licenseProject: " << licenseProject << "\n"
+        << "app: " << app << "\n"
+        << "postExecCmd: " << postExecCmd << "\n"
+        << "cwd: " << cwd << "\n"
+        << "notifyCmd: " << notifyCmd << "\n"
+        << "jobDescription: " << jobDescription << "\n"
+        << "resReq: " << resReq << "\n";
 
     os  << "askedHosts: (";
     for (unsigned i=0; i << askedHosts.size(); ++i)
@@ -169,15 +160,6 @@ std::ostream& lsfutil::LsfJobSubEntry::dump(std::ostream& os) const
 
     return os;
 }
-
-
-// * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * * Friend Functions  * * * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * * Friend Operators * * * * * * * * * * * * * * //
 
 
 /* ************************************************************************* */

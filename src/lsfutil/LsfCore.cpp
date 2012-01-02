@@ -1,5 +1,5 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright (c) 2011-2011 Mark Olesen
+Copyright (c) 2011-2012 Mark Olesen
 -------------------------------------------------------------------------------
 License
     This file is part of lsf-utils
@@ -23,9 +23,7 @@ License
 #include <sstream>
 
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-// misc utils
-//
+// * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
 
 std::string lsfutil::LsfCore::makeString(int i)
 {
@@ -133,12 +131,16 @@ lsfutil::LsfCore::parseRusage(const std::string& resReq)
 }
 
 
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
 lsfutil::LsfCore::LsfCore()
 {}
 
+
+// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
+
 lsfutil::LsfCore::~LsfCore()
 {}
-
 
 
 /* ************************************************************************* */

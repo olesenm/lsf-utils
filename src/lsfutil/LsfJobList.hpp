@@ -1,5 +1,5 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright (c) 2011-2011 Mark Olesen
+Copyright (c) 2011-2012 Mark Olesen
 -------------------------------------------------------------------------------
 License
     This file is part of lsf-utils
@@ -17,8 +17,11 @@ License
     You should have received a copy of the GNU General Public License
     along with lsf-utils. If not, see <http://www.gnu.org/licenses/>.
 
+Class
+    lsfutil::LsfJobList
+
 Description
-    --
+    A list of lsfutil::LsfJobEntry elements.
 
 \*---------------------------------------------------------------------------*/
 
@@ -64,12 +67,10 @@ class LsfJobList
 
 public:
 
-    // Static data members
-
-
     // Constructors
 
-        //! Construct
+        //! Construct with a given update interval
+        //  In the future, allow for internal caching
         LsfJobList(unsigned interval = 10, bool withPending = true);
 
 
@@ -81,30 +82,30 @@ public:
 
         // Access
 
-        bool hasError() const
-        {
-            return error_;
-        }
+            using std::vector<lsfutil::LsfJobEntry>::empty;
+            using std::vector<lsfutil::LsfJobEntry>::size;
+            using std::vector<lsfutil::LsfJobEntry>::operator[];
 
-        using std::vector<lsfutil::LsfJobEntry>::empty;
-        using std::vector<lsfutil::LsfJobEntry>::size;
-        using std::vector<lsfutil::LsfJobEntry>::operator[];
 
         // Check
 
+            //- Any errors encountered?
+            inline bool hasError() const
+            {
+                return error_;
+            }
+
+
         // Edit
-        bool update();
+
+            //- Populate the list with contents
+            bool update();
+
 
         // Write
-        std::ostream& dump(std::ostream&) const;
 
-    // Member Operators
-
-    // Friend Functions
-
-    // Friend Operators
-
-    // IOstream Operators
+            //- Raw dump of information in text format
+            std::ostream& dump(std::ostream&) const;
 
 };
 

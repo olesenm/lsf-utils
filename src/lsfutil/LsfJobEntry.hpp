@@ -1,5 +1,5 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright (c) 2011-2011 Mark Olesen
+Copyright (c) 2011-2012 Mark Olesen
 -------------------------------------------------------------------------------
 License
     This file is part of lsf-utils
@@ -17,8 +17,15 @@ License
     You should have received a copy of the GNU General Public License
     along with lsf-utils. If not, see <http://www.gnu.org/licenses/>.
 
+Class
+    lsfutil::LsfJobEntry
+
 Description
-    --
+    Encapsulation of LSF \c jobInfoEnt structure into a C++ class.
+
+    Since the primary purpose of the class it to avoid memory
+    allocation/de-allocation issues and provide other C++ conveniences,
+    almost all information is available directly as public members.
 
 \*---------------------------------------------------------------------------*/
 
@@ -65,7 +72,6 @@ public:
 
 
     // Public data
-    //
 
         LsfJobSubEntry submit;
 
@@ -161,7 +167,9 @@ public:
 
         // Write
 
-        std::ostream& dump(std::ostream&) const;
+            //- Raw dump of information in text format
+            std::ostream& dump(std::ostream&) const;
+
 
     // Member Operators
 

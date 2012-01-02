@@ -1,5 +1,5 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright 2011 Mark Olesen
+Copyright (c) 2011-2012 Mark Olesen
 -------------------------------------------------------------------------------
 License
     This file is part of lsf-utils.
@@ -38,7 +38,8 @@ const std::string markutil::HttpCore::nullString;
 
 // * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
 
-inline const std::string& hexEncode(char ch)
+//! \cond local scope
+static inline const std::string& hexEncode(char ch)
 {
     static char hex[] = "0123456789ABCDEF";
     static std::string buf('%', 3);
@@ -49,6 +50,7 @@ inline const std::string& hexEncode(char ch)
 
     return buf;
 }
+//! \endcond
 
 
 // date in RFC1123 format

@@ -1,5 +1,5 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright (c) 2011-2011 Mark Olesen
+Copyright (c) 2011-2012 Mark Olesen
 -------------------------------------------------------------------------------
 License
     This file is part of lsf-utils
@@ -26,6 +26,12 @@ Description
 SourceFiles
     LsfCore.cpp
 
+Namespace
+    lsfutil
+
+Description
+    Namespace for various pieces related to LSF routines
+
 \*---------------------------------------------------------------------------*/
 
 #ifndef LSF_CORE_H
@@ -46,25 +52,41 @@ namespace lsfutil
 class LsfCore
 {
 public:
-    //! The map type for rusage
+
+    //- The map type for rusage
     typedef std::map<std::string, std::string> rusage_map;
 
 
     // Constructors
 
-        //! Construct null
+        //- Construct null
         LsfCore();
 
-        //! Destructor
-        ~LsfCore();
+
+    //- Destructor
+    ~LsfCore();
 
 
+        // Member Functions
+
+        // Access
+
+        // Check
+
+        // Edit
+
+        // Write
+
+
+    //- Create a string, even from a NULL pointer
     static inline std::string makeString(const char* str)
     {
         return std::string(str ? str : "");
     }
 
+    //- Create a string from an integer
     static std::string makeString(int i);
+
 
     //- Remove trailing '/' from dir names
     static bool fixDirName(std::string& name);
@@ -80,8 +102,11 @@ public:
         const std::string& to
     );
 
-    // parse stuff like this
-    // rusage[starcdLic=1:duration=5,starccmpLic=5:duration=5,starcdJob=6]
+    //- Parse rusage information
+    //  This includes stuff that looks like this:
+    //  \verbatim
+    //  rusage[starcdLic=1:duration=5,starccmpLic=5:duration=5,starcdJob=6]
+    //  \endverbatim
     static rusage_map parseRusage(const std::string& resReq);
 
 };

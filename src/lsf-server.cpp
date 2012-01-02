@@ -1,5 +1,5 @@
 /*---------------------------------*- C++ -*---------------------------------*\
-Copyright 2011 Mark Olesen
+Copyright (c) 2011-2012 Mark Olesen
 -------------------------------------------------------------------------------
 License
     This file is part of lsf-utils.
@@ -17,10 +17,15 @@ License
     You should have received a copy of the GNU General Public License
     along with lsf-utils. If not, see <http://www.gnu.org/licenses/>.
 
-Class
-    LsfServer
+Application
+    lsf-server
 
 Description
+    Basic functions for producing text and xml output that is
+    somewhat compatible with GridEngine output.
+
+    The main purpose is to provide an LSF interface to existing
+    xml-qstat code.
 
 SourceFiles
     LsfServer.cpp
@@ -43,7 +48,10 @@ SourceFiles
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// specialization of HttpServer
+//! \class SampleServer
+//! \brief specialization of markutil::HttpServer
+//
+//! Serves LSF information
 class LsfServer
 :
     public markutil::HttpServer
@@ -429,7 +437,7 @@ int main(int argc, char **argv)
     if (!markutil::HttpCore::isDir(docRoot))
     {
         std::cerr
-            << "Directory does not exist: "<< docRoot << "\n";
+            << "Directory does not exist: " << docRoot << "\n";
         return 1;
     }
 
@@ -437,7 +445,7 @@ int main(int argc, char **argv)
     if (cgiBin.size() && !markutil::HttpCore::isDir(cgiBin))
     {
         std::cerr
-            << "Directory does not exist: "<< cgiBin << "\n";
+            << "Directory does not exist: " << cgiBin << "\n";
         return 1;
     }
 

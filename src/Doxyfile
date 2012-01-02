@@ -687,7 +687,7 @@ IMAGE_PATH             =
 # If FILTER_PATTERNS is specified, this tag will be
 # ignored.
 
-INPUT_FILTER           =
+INPUT_FILTER           = $(PWD)/doxyFilter
 
 # The FILTER_PATTERNS tag can be used to specify filters on a per file pattern
 # basis.

@@ -1,0 +1,140 @@
+#!/usr/bin/perl -w
+use strict;
+
+# -----------------------------------------------------------------------------
+# Script
+#     doxyFilter
+#
+# Description
+#     pass-through filter for doxygen
+#
+#     In the header comment (starting with 'License' paragraph),
+#     transforms human-readable tags such as 'Description' into doxygen
+#     equivalent.
+#
+#     In other sections, converts cocoon-style sentinel strings into
+#     doxygen style strings. The comment strings are assumed to be
+#     formatted as follows:
+#         //- general description
+#         //  more information
+#         //  and even more information
+#     This should be re-formatted as the following
+#         //! general description
+#         /*!
+#         more information
+#         and even more information
+#         */
+#     The intermediate "/*! ... */" block is left-justified to handle
+#     possible verbatim text
+# -----------------------------------------------------------------------------
+my $state = 0;
+
+my ($filePath) = @ARGV;
+$filePath =~ s{^[./]+}{};
+
+( my $dirName  = $filePath ) =~ s{[^/]+$}{};
+( my $fileName = $filePath ) =~ s{^.*/}{};
+
+while (<>) {
+
+    if ( m{^License} .. s{^\\\*-+\*/$}{*/} ) {
+
+        # process between License and separating line
+
+        # ignore dividing lines
+        if (m{^=+\s*$}) {
+            next;
+        }
+
+        # replace License ... with file information
+        # skip until the next left-justified line
+        if ( m{^License\s*$} ... m{^\S} ) {
+            if (m{^License}) {
+                print "*/\n/*!\n\@file $filePath\n\n";
+                next;
+            }
+            next unless m{^\S};
+        }
+
+        if (m{^(Class|Namespace|Package)\s*$}) {
+            my $tag = lc $1;
+
+            # Class
+            #     className
+            # =>
+            # @class className
+            #
+            # Namespace
+            #     namespaceName
+            # =>
+            # @namespace namespaceName
+            #
+            # Package
+            #     packageName
+            # =>
+            # @package packageName
+            ( $_ = <> ) =~ s{^\s*}{\@$tag };
+        }
+        elsif ( m{^Description\s*$} .. m{^\s*$} ) {
+
+            # the first paragraph will be 'brief' and the others 'detail'
+            s{^Description\s*$}{\@brief\n} or s{^    }{};
+        }
+        elsif ( m{^Usage\s*$} .. m{^\s*$} ) {
+            s{^Usage\s*$}{\@par Usage\n} or s{^    }{};
+        }
+        elsif ( m{^See\s*Also\s*$} .. m{^\s*$} ) {
+            s{^See\s*Also\s*$}{\@see\n} or s{^    }{};
+        }
+        elsif (
+            s{^(Note|To[Dd]o|Warning|Deprecated)\s*$}{\@\L$1\n} .. m{^\s*$} )
+        {
+            s{^    }{};
+        }
+        elsif ( m{^SourceFiles\s*$} .. m{^\s*$} ) {
+            if ( s{^SourceFiles\s*$}{\@par Source Files\n} ) {
+                print;
+                $_ = "<ul>\n";
+            }
+            elsif (s{^\s*$}{</ul>\n}) {
+            }
+            else {
+                ## not yet properly implemented
+                s{\s+}{}g;
+                $_ = qq{<li>$_</li>\n};
+            }
+        }
+    }
+    elsif ( m{^\s*//-} and s{//-}{//!} ) {
+
+        # start of sentinel comment
+        $state = 1;
+
+    }
+    elsif (m{^\s*//}) {
+
+        # sentinel already seen, start doxygen comment block
+        if ( $state == 1 ) {
+            print "/*!\n";
+            $state = 2;
+        }
+
+        # within comment block
+        if ( $state == 2 ) {
+            ## replace '// ' or '///' or '//!'
+            s{^\s*//\s\s?}{} or s{^\s*//[!/]}{};
+        }
+    }
+    else {
+
+        # end comment block
+        if ( $state == 2 ) {
+            print "*/\n";
+        }
+        $state = 0;
+    }
+
+    print;
+}
+
+# -----------------------------------------------------------------------------
