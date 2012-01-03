@@ -315,7 +315,40 @@ class LsfServer
 
         if (head.request().type() == head.request().GET)
         {
-            lsfutil::OutputQstatJ::print(os, jobs);
+            const QueryType& query = head.request().query();
+
+            std::set<std::string> jobFilter;
+
+            addToFilter(jobFilter, query, "jobid");
+
+            if (!jobFilter.empty())
+            {
+                // filter job-list based on query parameters
+                std::vector<int> displayJob;
+                displayJob.reserve(jobs.size());
+
+                for
+                (
+                    unsigned jobI = 0;
+                    jobI < jobs.size();
+                    ++jobI
+                )
+                {
+                    const lsfutil::LsfJobEntry& job = jobs[jobI];
+
+                    // filter based on job id criterion
+                    if (jobFilter.count(job.tokenJ()))
+                    {
+                        displayJob.push_back(jobI);
+                    }
+                }
+
+                lsfutil::OutputQstatJ::print(os, jobs, displayJob);
+            }
+            else
+            {
+                lsfutil::OutputQstatJ::print(os, jobs);
+            }
         }
 
         return 0;

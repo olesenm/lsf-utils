@@ -57,6 +57,14 @@ public:
         //- Print job list information in XML format
         static std::ostream& print(std::ostream&, const LsfJobList&);
 
+        //- Print job list information in XML format for a sub-set of jobs
+        static std::ostream& print
+        (
+            std::ostream&,
+            const LsfJobList&,
+            const std::vector<int>& indices
+        );
+
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

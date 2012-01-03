@@ -191,4 +191,54 @@ lsfutil::OutputQstatJ::print
 }
 
 
+std::ostream&
+lsfutil::OutputQstatJ::print
+(
+    std::ostream& os,
+    const lsfutil::LsfJobList& list,
+    const std::vector<int>& indices
+)
+{
+    os  << "<?xml version='1.0'?>\n";
+
+    if (list.hasError())
+    {
+        os  << "<lsf-error/>\n";
+
+        return os;
+    }
+
+    os  << "<detailed_job_info"
+        << " xmlns:xsd='http://www.w3.org/2001/XMLSchema'"
+        << " type='lsf' count='" << indices.size() << "'>\n";
+
+    os  << "<djob_info>\n";
+
+    // active jobs:
+    for (unsigned idxI = 0; idxI < indices.size(); ++idxI)
+    {
+        int jobI = indices[idxI];
+        if (list[jobI].isRunning())
+        {
+            print(os, list[jobI]);
+        }
+    }
+
+    // pending jobs:
+    for (unsigned idxI = 0; idxI < indices.size(); ++idxI)
+    {
+        int jobI = indices[idxI];
+        if (list[jobI].isPending())
+        {
+            print(os, list[jobI]);
+        }
+    }
+
+    os  << "</djob_info>\n";
+    os  << "</detailed_job_info>\n";
+
+    return os;
+}
+
+
 /* ************************************************************************* */
