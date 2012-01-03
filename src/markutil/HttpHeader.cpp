@@ -178,6 +178,12 @@ markutil::HttpHeader::request()
 }
 
 
+int markutil::HttpHeader::status() const
+{
+    return status_;
+}
+
+
 markutil::HttpHeader&
 markutil::HttpHeader::status(StatusCode code)
 {
@@ -186,18 +192,33 @@ markutil::HttpHeader::status(StatusCode code)
 }
 
 
-std::ostream& markutil::HttpHeader::html(std::ostream& os) const
+std::ostream& markutil::HttpHeader::htmlBeg(std::ostream& os) const
 {
     os  << "<html><head><title>"
-        << status_ << " " << statusAsText()
-        << "</title></head><body>"
-        << "<h1>" << status_ << " " << statusAsText() << "</h1>"
-        << "Resource <b>";
+        << status_ << " " << statusAsText() << "</title></head>"
+        << "<body>" "<h1>" << status_ << " " << statusAsText() << "</h1>"
+        << "<p>Resource <b>";
     xmlEscapeChars(os, request_.path());
-    os  << "</b><hr />";
+    os  << "</b></p>";
 
-    xmlEscapeChars(os, this->operator[]("Server"))
-        << " </body></html>\n";
+    return os;
+}
+
+
+std::ostream& markutil::HttpHeader::htmlEnd(std::ostream& os) const
+{
+    os  << "<hr />";
+    xmlEscapeChars(os, this->operator[]("Server"));
+    os  << " </body></html>\n";
+
+    return os;
+}
+
+
+std::ostream& markutil::HttpHeader::html(std::ostream& os) const
+{
+    htmlBeg(os);
+    htmlEnd(os);
 
     return os;
 }

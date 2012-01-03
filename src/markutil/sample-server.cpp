@@ -48,6 +48,117 @@ class SampleServer
 :
     public markutil::HttpServer
 {
+    // Private Member Functions
+
+    //! Specialized server-info
+    int debug_query(std::ostream& os, HeaderType& head) const
+    {
+        RequestType& req = head.request();
+
+        if
+        (
+            req.type() != req.HEAD
+         && req.type() != req.GET
+        )
+        {
+            head(head._405_METHOD_NOT_ALLOWED);
+            head("Allow", "GET,HEAD");
+            head.print(os, true);
+
+            return 1;
+        }
+
+
+        os  << head(head._200_OK);
+
+        if (req.type() == req.GET)
+        {
+            const QueryType& query = req.query();
+
+            os  << "<html><head><title>server-info</title></head>"
+                << "<body>"
+                << "Date: " << head["Date"] << "<br />"
+                << "Document-Root: " << this->root() << "<br />"
+                << "Server: " << this->name() << "<br />"
+                << "Request: ";
+
+            xmlEscapeChars
+            (
+                os,
+                req.requestURI()
+            ) << "<br />";
+            os  << "<hr />";
+
+            if (!query.empty())
+            {
+                const QueryType::string_list& unnamed = query.unnamed();
+                if (!unnamed.empty())
+                {
+                    os  << unnamed.size()
+                        << " unnamed<br /><blockquote>";
+
+                    for
+                    (
+                        unsigned nameI = 0;
+                        nameI < unnamed.size();
+                        ++nameI
+                    )
+                    {
+                        xmlEscapeChars
+                        (
+                            os,
+                            unnamed[nameI]
+                        )  << "<br />";
+                    }
+                    os  << "</blockquote><hr />";
+                }
+
+
+                QueryType::string_list param = query.param();
+                if (!param.empty())
+                {
+                    os  << param.size()
+                        << " param<br /><blockquote>";
+                    for
+                    (
+                        unsigned nameI = 0;
+                        nameI < param.size();
+                        ++nameI
+                    )
+                    {
+                        const std::string& name = param[nameI];
+                        const QueryType::string_list& vals
+                            = query.param(name);
+
+                        for
+                        (
+                            unsigned valI = 0;
+                            valI < vals.size();
+                            ++valI
+                            )
+                        {
+                            xmlEscapeChars
+                            (
+                                os,
+                                name
+                            ) << "=";
+                            xmlEscapeChars
+                            (
+                                os,
+                                vals[valI]
+                            ) << "<br />";
+                        }
+                    }
+                    os  << "</blockquote><hr />";
+                }
+            }
+            os  << "</body></html>\n";
+        }
+
+        return 0;
+    }
+
+
 public:
 
     typedef markutil::HttpServer ParentClass;
@@ -88,7 +199,7 @@ public:
 
             if (url == "/debug-query")
             {
-                return this->server_info(os, head);
+                return this->debug_query(os, head);
             }
 
 
@@ -104,115 +215,6 @@ public:
             return this->ParentClass::reply(os, head);
         }
 
-
-        //! Specialized server-info
-        virtual int debug_query(std::ostream& os, HeaderType& head) const
-        {
-            RequestType& req = head.request();
-
-            if
-            (
-                req.type() != req.HEAD
-             && req.type() != req.GET
-            )
-            {
-                head(head._405_METHOD_NOT_ALLOWED);
-                head("Allow", "GET,HEAD");
-                head.print(os, true);
-
-                return 1;
-            }
-
-
-            os  << head(head._200_OK);
-
-            if (req.type() == req.GET)
-            {
-                const QueryType& query = req.query();
-
-                os  << "<html><head>"
-                    << "<title>server-info</title>"
-                    << "</head><body>"
-                    << "Date: " << head["Date"] << "<br />"
-                    << "Document-Root: " << this->root() << "<br />"
-                    << "Server: " << this->name() << "<br />"
-                    << "Request: ";
-
-                xmlEscapeChars
-                (
-                    os,
-                    req.requestURI()
-                ) << "<br />";
-                os  << "<hr />";
-
-                if (!query.empty())
-                {
-                    const QueryType::string_list& unnamed = query.unnamed();
-                    if (!unnamed.empty())
-                    {
-                        os  << unnamed.size()
-                            << " unnamed<br /><blockquote>";
-
-                        for
-                        (
-                            unsigned nameI = 0;
-                            nameI < unnamed.size();
-                            ++nameI
-                        )
-                        {
-                            xmlEscapeChars
-                            (
-                                os,
-                                unnamed[nameI]
-                            )  << "<br />";
-                        }
-                        os  << "</blockquote><hr />";
-                    }
-
-
-                    QueryType::string_list param = query.param();
-                    if (!param.empty())
-                    {
-                        os  << param.size()
-                            << " param<br /><blockquote>";
-                        for
-                        (
-                            unsigned nameI = 0;
-                            nameI < param.size();
-                            ++nameI
-                        )
-                        {
-                            const std::string& name = param[nameI];
-                            const QueryType::string_list& vals
-                                = query.param(name);
-
-                            for
-                            (
-                                unsigned valI = 0;
-                                valI < vals.size();
-                                ++valI
-                                )
-                            {
-                                xmlEscapeChars
-                                (
-                                    os,
-                                    name
-                                ) << "=";
-                                xmlEscapeChars
-                                (
-                                    os,
-                                    vals[valI]
-                                ) << "<br />";
-                            }
-                        }
-                        os  << "</blockquote><hr />";
-                    }
-                }
-                os  << "</body></html>\n";
-            }
-
-            return 0;
-        }
 };
 
 

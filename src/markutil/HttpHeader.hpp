@@ -136,6 +136,9 @@ public:
             //- Read-only access to the originating request
             const HttpRequest& request() const;
 
+            //- The status code as integer
+            int status() const;
+
             //- Provide text representation of the status code
             const char *statusAsText() const;
 
@@ -164,8 +167,15 @@ public:
 
         // Write
 
+            //- Begin HTML header with H1 and resource information
+            std::ostream& htmlBeg(std::ostream&) const;
+
+            //- End HTML with server information
+            std::ostream& htmlEnd(std::ostream&) const;
+
             //- Output information as XML/HTML content
             //  Useful for generated error messages
+            //  Equivalent to htmlBeg/htmlEnd without intermediate content
             std::ostream& html(std::ostream&) const;
 
             //- Output header contents, optionally with html

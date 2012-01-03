@@ -56,6 +56,7 @@ class LsfServer
 :
     public markutil::HttpServer
 {
+    // Private Member Functions
 
     template<class T>
     static std::set<T>& addToFilter
@@ -123,12 +124,7 @@ class LsfServer
     }
 
 
-
-    virtual int serve_blsof
-    (
-        std::ostream& os,
-        HeaderType& head
-    ) const
+    int serve_blsof(std::ostream& os, HeaderType& head) const
     {
         lsfutil::LsfJobList jobs;
 
@@ -253,11 +249,7 @@ class LsfServer
     }
 
 
-    virtual int serve_dump
-    (
-        std::ostream& os,
-        HeaderType& head
-    ) const
+    int serve_dump(std::ostream& os, HeaderType& head) const
     {
         lsfutil::LsfJobList jobs;
 
@@ -282,11 +274,7 @@ class LsfServer
     }
 
 
-    virtual int serve_qstat_xml
-    (
-        std::ostream& os,
-        HeaderType& head
-    ) const
+    int serve_qstat_xml(std::ostream& os, HeaderType& head) const
     {
         lsfutil::LsfJobList jobs;
 
@@ -310,11 +298,7 @@ class LsfServer
     }
 
 
-    virtual int serve_qstatj_xml
-    (
-        std::ostream& os,
-        HeaderType& head
-    ) const
+    int serve_qstatj_xml(std::ostream& os, HeaderType& head) const
     {
         lsfutil::LsfJobList jobs;
 
@@ -344,7 +328,7 @@ public:
 
     // Constructors
 
-        //- Create a server on specified port
+        //! Create a server on specified port
         LsfServer(unsigned short port, const std::string& root)
         :
             ParentClass(port)
@@ -353,6 +337,10 @@ public:
             this->root(root);
         }
 
+
+    // General Operation
+
+        //! Specialized reply
         virtual int reply(std::ostream& os, HeaderType& head) const
         {
             RequestType& req = head.request();
@@ -413,7 +401,7 @@ int main(int argc, char **argv)
 
         std::cerr
             << "usage: "<< name << " Port DocRoot [cgi-bin]\n\n"
-            << "A small sample web server in C++\n\n"
+            << "Serve LSF information as text or xml, as well as providing a basic web server.\n\n"
             << "Eg,\n"
             << name << " " << markutil::HttpServer::defaultPort
             << " " << markutil::HttpServer::defaultRoot << "\n\n";

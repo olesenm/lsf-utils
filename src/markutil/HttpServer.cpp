@@ -429,11 +429,7 @@ int markutil::HttpServer::run()
 
             if (url.size() >= len && url.substr(0, len) == prefix)
             {
-                if
-                (
-                    url.size() == len
-                 || (url.size() == len+1 && (url[len] == '/'))
-                )
+                if (url.size() == len)
                 {
                     head(head._404_NOT_FOUND);
                     head.print(os, true);
@@ -445,33 +441,37 @@ int markutil::HttpServer::run()
                 }
                 else if (url[len] == '/')
                 {
-                    // only support HEAD, GET for cgi
                     HttpRequest& req = head.request();
 
                     int ret = 1;
-                    if (this->cgibin().empty())
+                    if (url.size() == len+1)
+                    {
+                        head(head._403_FORBIDDEN);
+                        head.print(os, true);
+                    }
+                    else if (this->cgibin().empty())
                     {
                         head(head._404_NOT_FOUND);
                         head.print(os, true);
                     }
                     else if
                     (
-                        req.type() != req.HEAD
-                     && req.type() != req.GET
+                        req.type() == req.HEAD
+                     || req.type() == req.GET
                     )
-                    {
-                        head(head._405_METHOD_NOT_ALLOWED);
-                        head("Allow", "GET,HEAD");
-                        head.print(os, true);
-                    }
-                    else
                     {
                         this->prepareCgiEnv(sockfd, head);
 
                         // serve cgi
                         ret = this->cgi(sockfd, head);
                     }
-
+                    else
+                    {
+                        // only support HEAD, GET for cgi
+                        head(head._405_METHOD_NOT_ALLOWED);
+                        head("Allow", "GET,HEAD");
+                        head.print(os, true);
+                    }
 #ifdef LINUX
                     sleep(1);      // let socket to drain
 #endif
@@ -493,8 +493,7 @@ int markutil::HttpServer::run()
 
 int markutil::HttpServer::cgi(int fd, HttpHeader& head) const
 {
-    HttpRequest& req = head.request();
-    std::string script_filename = req.path();
+    std::string script_filename = head.request().path();
 
     // convert SCRIPT_URL -> SCRIPT_NAME
     // remove leading "/cgi-bin"
@@ -547,7 +546,11 @@ int markutil::HttpServer::cgi(int fd, HttpHeader& head) const
         boost::fdostream os(fd);
 
         head(head._503_SERVICE_UNAVAILABLE);
-        head.print(os, true);
+        head.print(os);
+
+        head.htmlBeg(os) << "<br />CGI-script: ";
+        xmlEscapeChars(os, script_filename);
+        head.htmlEnd(os);
     }
 
     return ret;
@@ -575,9 +578,7 @@ int markutil::HttpServer::server_info(std::ostream& os, HttpHeader& head) const
 
     if (req.type() == req.GET)
     {
-        os  << "<html><head>"
-            << "<title>server-info</title>"
-            << "</head><body>"
+        os  << "<html><head><title>server-info</title></head><body>"
             << "<hr /><h3>Server Info</h3><blockquote>"
             << "Date: " << head["Date"] << "<br />"
             << "Server-Software: " << this->name() << "<br />"
