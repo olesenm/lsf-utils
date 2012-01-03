@@ -128,6 +128,28 @@ bool markutil::HttpServer::setPath
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
+bool markutil::HttpServer::notGetOrHead
+(
+    std::ostream& os,
+    HttpHeader& head
+)
+const
+{
+    const RequestType& req = head.request();
+
+    if (req.type() == req.GET || req.type() == req.HEAD)
+    {
+        return false;
+    }
+
+    head(head._405_METHOD_NOT_ALLOWED);
+    head("Allow", "GET,HEAD");
+    head.print(os, true);
+
+    return true;
+}
+
+
 void markutil::HttpServer::setCgiEnv(int fd, HttpHeader& head) const
 {
     HttpRequest& req = head.request();
@@ -436,8 +458,6 @@ int markutil::HttpServer::run()
              && url[len] == '/'
             )
             {
-                HttpRequest& req = head.request();
-
                 int ret = 1;
                 if (url.size() == len+1)
                 {
@@ -453,21 +473,10 @@ int markutil::HttpServer::run()
                         << "<p>no CGI-bin defined for this server</p>";
                     head.htmlEnd(os);
                 }
-                else if
-                (
-                    req.type() == req.HEAD
-                 || req.type() == req.GET
-                )
+                else
                 {
                     // set CGI environment and serve cgi
                     ret = this->cgi(sockfd, head);
-                }
-                else
-                {
-                    // only support HEAD, GET for cgi
-                    head(head._405_METHOD_NOT_ALLOWED);
-                    head("Allow", "GET,HEAD");
-                    head.print(os, true);
                 }
 #ifdef LINUX
                 sleep(1);      // let socket drain
@@ -493,16 +502,8 @@ int markutil::HttpServer::server_info(std::ostream& os, HttpHeader& head) const
 
     const char* const br = "<br />\n";
 
-    if
-    (
-        req.type() != req.HEAD
-     && req.type() != req.GET
-    )
+    if (notGetOrHead(os, head))
     {
-        head(head._405_METHOD_NOT_ALLOWED);
-        head("Allow", "GET,HEAD");
-        head.print(os, true);
-
         return 1;
     }
 
@@ -564,6 +565,12 @@ int markutil::HttpServer::server_info(std::ostream& os, HttpHeader& head) const
 
 int markutil::HttpServer::cgi(int fd, HttpHeader& head) const
 {
+    boost::fdostream os(fd);
+    if (notGetOrHead(os, head))
+    {
+        return 1;
+    }
+
     setCgiEnv(fd, head);
 
     const std::string& requestPath = head.request().path();
@@ -645,16 +652,8 @@ int markutil::HttpServer::reply(std::ostream& os, HttpHeader& head) const
 {
     HttpRequest& req = head.request();
 
-    if
-    (
-        req.type() != req.HEAD
-     && req.type() != req.GET
-    )
+    if (notGetOrHead(os, head))
     {
-        head(head._405_METHOD_NOT_ALLOWED);
-        head("Allow", "GET,HEAD");
-        head.print(os, true);
-
         return 1;
     }
 

@@ -343,21 +343,12 @@ public:
         //! Specialized reply
         virtual int reply(std::ostream& os, HeaderType& head) const
         {
-            RequestType& req = head.request();
-            const std::string& url = req.path();
-
-            if
-            (
-                req.type() != req.HEAD
-             && req.type() != req.GET
-            )
+            if (notGetOrHead(os, head))
             {
-                head(head._405_METHOD_NOT_ALLOWED);
-                head("Allow", "GET,HEAD");
-                head.print(os, true);
-
                 return 1;
             }
+
+            const std::string& url = head.request().path();
 
             if (url == "/dump")
             {

@@ -93,6 +93,9 @@ protected:
         //  string if there are problems
         void setCgiEnv(int sockfd, HttpHeader& head) const;
 
+        //- Check for GET or HEAD, emitting error 405 if it doesn't match
+        bool notGetOrHead(std::ostream& os, HttpHeader& head) const;
+
 
 public:
 
