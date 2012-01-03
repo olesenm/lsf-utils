@@ -126,7 +126,9 @@ bool markutil::HttpServer::setPath
 }
 
 
-void markutil::HttpServer::prepareCgiEnv(int fd, HttpHeader& head) const
+// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
+
+void markutil::HttpServer::setCgiEnv(int fd, HttpHeader& head) const
 {
     HttpRequest& req = head.request();
     std::string script_url = req.path();
@@ -427,61 +429,55 @@ int markutil::HttpServer::run()
             const std::string& prefix = this->cgiPrefix();
             const size_t len = prefix.size();
 
-            if (url.size() >= len && url.substr(0, len) == prefix)
+            if
+            (
+                url.size() > len
+             && url.substr(0, len) == prefix
+             && url[len] == '/'
+            )
             {
-                if (url.size() == len)
+                HttpRequest& req = head.request();
+
+                int ret = 1;
+                if (url.size() == len+1)
                 {
-                    head(head._404_NOT_FOUND);
+                    head(head._403_FORBIDDEN);
                     head.print(os, true);
-
-#ifdef LINUX
-                    sleep(1);      // let socket to drain
-#endif
-                    return 1;
                 }
-                else if (url[len] == '/')
+                else if (this->cgibin().empty())
                 {
-                    HttpRequest& req = head.request();
+                    head(head._501_NOT_IMPLEMENTED);
+                    head.print(os);
 
-                    int ret = 1;
-                    if (url.size() == len+1)
-                    {
-                        head(head._403_FORBIDDEN);
-                        head.print(os, true);
-                    }
-                    else if (this->cgibin().empty())
-                    {
-                        head(head._404_NOT_FOUND);
-                        head.print(os, true);
-                    }
-                    else if
-                    (
-                        req.type() == req.HEAD
-                     || req.type() == req.GET
-                    )
-                    {
-                        this->prepareCgiEnv(sockfd, head);
-
-                        // serve cgi
-                        ret = this->cgi(sockfd, head);
-                    }
-                    else
-                    {
-                        // only support HEAD, GET for cgi
-                        head(head._405_METHOD_NOT_ALLOWED);
-                        head("Allow", "GET,HEAD");
-                        head.print(os, true);
-                    }
-#ifdef LINUX
-                    sleep(1);      // let socket to drain
-#endif
-                    return ret;
+                    head.htmlBeg(os)
+                        << "<p>no CGI-bin defined for this server</p>";
+                    head.htmlEnd(os);
                 }
+                else if
+                (
+                    req.type() == req.HEAD
+                 || req.type() == req.GET
+                )
+                {
+                    // set CGI environment and serve cgi
+                    ret = this->cgi(sockfd, head);
+                }
+                else
+                {
+                    // only support HEAD, GET for cgi
+                    head(head._405_METHOD_NOT_ALLOWED);
+                    head("Allow", "GET,HEAD");
+                    head.print(os, true);
+                }
+#ifdef LINUX
+                sleep(1);      // let socket drain
+#endif
+                return ret;
             }
 
             int ret = this->reply(os, head);
 #ifdef LINUX
-            sleep(1);      // let socket to drain
+            sleep(1);      // let socket drain
 #endif
             return ret;
         }
@@ -491,75 +487,11 @@ int markutil::HttpServer::run()
 }
 
 
-int markutil::HttpServer::cgi(int fd, HttpHeader& head) const
-{
-    std::string script_filename = head.request().path();
-
-    // convert SCRIPT_URL -> SCRIPT_NAME
-    // remove leading "/cgi-bin"
-    script_filename.erase(0, cgiPrefix_.size());
-    size_t slash = script_filename.find('/', 1);
-    if (slash != std::string::npos)
-    {
-        script_filename.resize(slash);
-    }
-
-    script_filename = this->cgibin() + script_filename;
-
-    struct stat sb;
-
-    // assume error
-    int ret = 1;
-    FILE *pipe;
-
-    // for execution
-    if
-    (
-        ::stat(script_filename.c_str(), &sb) == 0
-     && S_ISREG(sb.st_mode)
-     && (pipe = ::popen(script_filename.c_str(), "r")) != NULL
-    )
-    {
-        int pipeFd = ::fileno(pipe);
-
-        // read and send in 8KB block - last block may be smaller
-        size_t nread;
-        while ( (nread = ::read(pipeFd, buffer, BufSize)) > 0 )
-        {
-            // okay, we did read something
-            ret = 0;
-
-            size_t noff = 0;
-            while (nread)
-            {
-                size_t nwrite = ::write(fd, &buffer[noff], nread);
-                nread -= nwrite;
-                noff  += nwrite;
-            }
-        }
-
-        pclose(pipe);
-    }
-
-    if (ret)
-    {
-        boost::fdostream os(fd);
-
-        head(head._503_SERVICE_UNAVAILABLE);
-        head.print(os);
-
-        head.htmlBeg(os) << "<br />CGI-script: ";
-        xmlEscapeChars(os, script_filename);
-        head.htmlEnd(os);
-    }
-
-    return ret;
-}
-
-
 int markutil::HttpServer::server_info(std::ostream& os, HttpHeader& head) const
 {
     RequestType& req = head.request();
+
+    const char* const br = "<br />\n";
 
     if
     (
@@ -579,24 +511,35 @@ int markutil::HttpServer::server_info(std::ostream& os, HttpHeader& head) const
     if (req.type() == req.GET)
     {
         os  << "<html><head><title>server-info</title></head><body>"
-            << "<hr /><h3>Server Info</h3><blockquote>"
-            << "Date: " << head["Date"] << "<br />"
-            << "Server-Software: " << this->name() << "<br />"
-            << "Server-Address: " << socketinfo_.hostAddr() << "<br />"
-            << "Server-Name: " << socketinfo_.hostName() << "<br />"
-            << "Server-Port: " << this->port_ << "<br />"
-            << "Remote-Address: " << socketinfo_.peerAddr() << "<br />"
-            << "Remote-Name: " << socketinfo_.peerName() << "<br />"
-            << "Remote-Port: " << socketinfo_.peerPort() << "<br />"
-            << "Document-Root: " << this->root() << "<br />"
-            << "CGI-bin: " << this->cgibin() << "<br />"
-            << "Request: ";
+            << "<hr /><h3>Server Info</h3><blockquote>\n"
+            << "Date: "            << head["Date"] << br
+            << "Server-Software: " << this->name() << br
+            << "Server-Address: "  << socketinfo_.hostAddr() << br
+            << "Server-Name: "     << socketinfo_.hostName() << br
+            << "Server-Port: "     << this->port_ << br
+            << "Remote-Address: "  << socketinfo_.peerAddr() << br
+            << "Remote-Name: "     << socketinfo_.peerName() << br
+            << "Remote-Port: "     << socketinfo_.peerPort() << br
+            << "Document-Root: "   << this->root() << br;
 
+        // The CGI-bin may not be enabled
+        os  << "CGI-bin: ";
+        if (this->cgibin().empty())
+        {
+            os  << "not defined for this server";
+        }
+        else
+        {
+            os << this->cgibin();
+        }
+        os  << br;
+
+        os  << "Request: ";
         xmlEscapeChars
         (
             os,
             req.requestURI()
-        ) << "</blockquote>";
+        ) << "</blockquote>\n";
 
         // raw request headers
         os  << "<hr /><h3>Request Headers</h3><blockquote>";
@@ -609,13 +552,92 @@ int markutil::HttpServer::server_info(std::ostream& os, HttpHeader& head) const
         )
         {
             os  << iter->first << ": ";
-            xmlEscapeChars(os, iter->second) << "<br />\n";
+            xmlEscapeChars(os, iter->second) << br;
         }
         os  << "</blockquote><hr />";
         os  << "</body></html>\n";
     }
 
     return 0;
+}
+
+
+int markutil::HttpServer::cgi(int fd, HttpHeader& head) const
+{
+    setCgiEnv(fd, head);
+
+    const std::string& requestPath = head.request().path();
+
+    // convert SCRIPT_URL -> SCRIPT_NAME
+    // remove leading "/cgi-bin"
+
+    const size_t beg   = cgiPrefix_.size();
+    const size_t slash = requestPath.find('/', beg + 1);
+
+    const std::string cgiProg =
+    (
+        this->cgibin()
+      +
+        (
+            slash == std::string::npos
+          ? requestPath.substr(beg)
+          : requestPath.substr(beg, slash - beg)
+        )
+    );
+
+    struct stat sb;
+    FILE *pipe;
+    int ret = 1;    // assume error
+
+    std::string error;
+
+    if (::stat(cgiProg.c_str(), &sb) != 0 || !S_ISREG(sb.st_mode))
+    {
+        error = "does not exist";
+    }
+    else if ((pipe = ::popen(cgiProg.c_str(), "r")) != NULL)
+    {
+        int pipeFd = ::fileno(pipe);
+
+        // read and send blockwise - last block may be smaller
+        size_t nread;
+        while ( (nread = ::read(pipeFd, buffer, BufSize)) > 0 )
+        {
+            // okay, we did read something
+            ret = 0;
+
+            size_t noff = 0;
+            while (nread)
+            {
+                size_t nwrite = ::write(fd, &buffer[noff], nread);
+                nread -= nwrite;
+                noff  += nwrite;
+            }
+        }
+
+        pclose(pipe);
+    }
+    else
+    {
+        error = "could not open a pipe for reading";
+    }
+
+
+    if (ret)
+    {
+        boost::fdostream os(fd);
+
+        head(head._503_SERVICE_UNAVAILABLE);
+        head.print(os);
+
+        head.htmlBeg(os) << "<p>CGI-Program <b>";
+        xmlEscapeChars(os, cgiProg) << "</b></p>";
+        os  << "<p>" << (error.empty() ? "returned nothing" : error) << "</p>";
+
+        head.htmlEnd(os);
+    }
+
+    return ret;
 }
 
 
@@ -654,8 +676,8 @@ int markutil::HttpServer::reply(std::ostream& os, HttpHeader& head) const
 
 
     // open the file for reading
-    const std::string file = root_ + req.path();
-    int fileFd = open(file.c_str(), O_RDONLY);
+    const std::string file = this->root() + req.path();
+    int fileFd = ::open(file.c_str(), O_RDONLY);
     if (fileFd == -1)
     {
         head(head._404_NOT_FOUND);
@@ -667,7 +689,7 @@ int markutil::HttpServer::reply(std::ostream& os, HttpHeader& head) const
     os  << head(head._200_OK);
     if (req.type() == req.GET)
     {
-        // send file in 8KB block - last block may be smaller
+        // send file blockwise - last block may be smaller
         size_t nbyte;
         while ( (nbyte = ::read(fileFd, buffer, BufSize)) > 0 )
         {
