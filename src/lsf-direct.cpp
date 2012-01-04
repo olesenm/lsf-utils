@@ -28,6 +28,8 @@ Description
 #include <iostream>
 
 #include "lsfutil/LsfJobList.hpp"
+#include "lsfutil/LsfHostList.hpp"
+#include "lsfutil/OutputQhost.hpp"
 #include "lsfutil/OutputQstat.hpp"
 #include "lsfutil/OutputQstatJ.hpp"
 #include "markutil/HttpRequest.hpp"
@@ -65,6 +67,13 @@ int main(int argc, char **argv)
                 << job.submit.outFile << " "
                 << job.jobId << "\n";
         }
+        return 0;
+    }
+
+    if (url == "/qhost.xml")
+    {
+        lsfutil::LsfHostList hosts;
+        lsfutil::OutputQhost::print(std::cout, hosts);
         return 0;
     }
 

@@ -74,18 +74,24 @@ BINS = lsf-direct lsf-server
 
 LIBHDRS = \
     lsfutil/LsfCore.hpp \
+    lsfutil/LsfHostEntry.hpp \
+    lsfutil/LsfHostList.hpp \
     lsfutil/LsfJobEntry.hpp \
     lsfutil/LsfJobList.hpp \
     lsfutil/LsfJobSubEntry.hpp \
+    lsfutil/OutputQhost.hpp \
     lsfutil/OutputQstat.hpp \
     lsfutil/OutputQstatJ.hpp \
     lsfutil/XmlUtils.hpp
 
 LIBSRCS = \
     lsfutil/LsfCore.cpp \
+    lsfutil/LsfHostEntry.cpp \
+    lsfutil/LsfHostList.cpp \
     lsfutil/LsfJobEntry.cpp \
     lsfutil/LsfJobList.cpp \
     lsfutil/LsfJobSubEntry.cpp \
+    lsfutil/OutputQhost.cpp \
     lsfutil/OutputQstat.cpp \
     lsfutil/OutputQstatJ.cpp \
     lsfutil/XmlUtils.cpp
@@ -93,9 +99,12 @@ LIBSRCS = \
 
 LIBOBJS = \
     lsfutil/LsfCore.o \
+    lsfutil/LsfHostEntry.o \
+    lsfutil/LsfHostList.o \
     lsfutil/LsfJobEntry.o \
     lsfutil/LsfJobList.o \
     lsfutil/LsfJobSubEntry.o \
+    lsfutil/OutputQhost.o \
     lsfutil/OutputQstat.o \
     lsfutil/OutputQstatJ.o \
     lsfutil/XmlUtils.o

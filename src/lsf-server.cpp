@@ -41,7 +41,9 @@ SourceFiles
 #include <sstream>
 
 #include "markutil/HttpServer.hpp"
+#include "lsfutil/LsfHostList.hpp"
 #include "lsfutil/LsfJobList.hpp"
+#include "lsfutil/OutputQhost.hpp"
 #include "lsfutil/OutputQstat.hpp"
 #include "lsfutil/OutputQstatJ.hpp"
 
@@ -58,14 +60,13 @@ class LsfServer
 {
     // Private Member Functions
 
-    template<class T>
-    static std::set<T>& addToFilter
+    static std::set<std::string>& addToFilter
     (
-        std::set<T>& filter,
+        std::set<std::string>& filter,
         const std::string& s
     )
     {
-        std::stringstream ss(s);
+        std::istringstream ss(s);
         std::string item;
         while (std::getline(ss, item, ','))
         {
@@ -78,10 +79,9 @@ class LsfServer
     }
 
 
-    template<class T>
-    static std::set<T>& addToFilter
+    static std::set<std::string>& addToFilter
     (
-        std::set<T>& filter,
+        std::set<std::string>& filter,
         const QueryType& query,
         const std::string& name
     )
@@ -101,23 +101,23 @@ class LsfServer
     }
 
 
-    template<class T, class AnyT>
+    template<class SomeT>
     static bool intersectsFilter
     (
-        const std::set<T>& filter,
-        const std::map<T, AnyT>& source
+        const std::set<std::string>& s,
+        const std::map<std::string, SomeT>& m
     )
     {
         bool matched = false;
 
         for
         (
-            typename std::map<T, AnyT>::const_iterator iter = source.begin();
-            !matched && iter != source.end();
+            typename std::map<std::string, SomeT>::const_iterator iter = m.begin();
+            !matched && iter != m.end();
             ++iter
         )
         {
-            matched = filter.count(iter->first);
+            matched = s.count(iter->first);
         }
 
         return matched;
@@ -274,6 +274,30 @@ class LsfServer
     }
 
 
+    int serve_qhost_xml(std::ostream& os, HeaderType& head) const
+    {
+        lsfutil::LsfHostList hosts;
+
+        if (hosts.hasError())
+        {
+            head(head._503_SERVICE_UNAVAILABLE);
+            head.print(os, true);
+
+            return 1;
+        }
+
+        head.contentType("xml");
+        os  << head(head._200_OK);
+
+        if (head.request().type() == head.request().GET)
+        {
+            lsfutil::OutputQhost::print(os, hosts);
+        }
+
+        return 0;
+    }
+
+
     int serve_qstat_xml(std::ostream& os, HeaderType& head) const
     {
         lsfutil::LsfJobList jobs;
@@ -391,6 +415,11 @@ public:
             if (url == "/blsof")
             {
                 return serve_blsof(os, head);
+            }
+
+            if (url == "/qhost.xml")
+            {
+                return serve_qhost_xml(os, head);
             }
 
             if (url == "/qstat.xml")

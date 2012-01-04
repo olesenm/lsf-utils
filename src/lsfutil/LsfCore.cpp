@@ -131,6 +131,25 @@ lsfutil::LsfCore::parseRusage(const std::string& resReq)
 }
 
 
+std::vector<std::string>
+lsfutil::LsfCore::parseSpaceDelimited(const std::string& str)
+{
+    std::vector<std::string> output;
+
+    std::istringstream ss(str);
+    std::string item;
+    while (std::getline(ss, item, ' '))
+    {
+        if (!item.empty())
+        {
+            output.push_back(item);
+        }
+    }
+
+    return output;
+}
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 lsfutil::LsfCore::LsfCore()

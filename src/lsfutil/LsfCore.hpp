@@ -38,6 +38,7 @@ Description
 #define LSF_CORE_H
 
 #include <map>
+#include <vector>
 #include <string>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -108,6 +109,9 @@ public:
     //  rusage[starcdLic=1:duration=5,starccmpLic=5:duration=5,starcdJob=6]
     //  \endverbatim
     static rusage_map parseRusage(const std::string& resReq);
+
+    //- Parse space-delimited string into a vector of strings
+    static std::vector<std::string> parseSpaceDelimited(const std::string&);
 
 };
 
