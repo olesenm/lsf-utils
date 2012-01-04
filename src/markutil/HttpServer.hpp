@@ -196,6 +196,9 @@ public:
             //- Reply to the incoming request, which is already embedded in the reply header
             virtual int reply(std::ostream&, HeaderType&) const;
 
+            //- Reply with basic server information as html
+            virtual int server_about(std::ostream&, HttpHeader&) const;
+
             //- Reply with server information as html
             virtual int server_info(std::ostream&, HttpHeader&) const;
 

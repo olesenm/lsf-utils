@@ -104,8 +104,8 @@ class LsfServer
     template<class T, class AnyT>
     static bool intersectsFilter
     (
-        std::set<T>& filter,
-        std::map<T, AnyT>& source
+        const std::set<T>& filter,
+        const std::map<T, AnyT>& source
     )
     {
         bool matched = false;

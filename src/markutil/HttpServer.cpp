@@ -496,6 +496,52 @@ int markutil::HttpServer::run()
 }
 
 
+int markutil::HttpServer::server_about(std::ostream& os, HttpHeader& head) const
+{
+    RequestType& req = head.request();
+
+    const char* const br = "<br />\n";
+
+    if (notGetOrHead(os, head))
+    {
+        return 1;
+    }
+
+    os  << head(head._200_OK);
+
+    if (req.type() == req.GET)
+    {
+        os  << "<html><head><title>about:"
+            << this->name() << "</title></head>";
+
+        os  << "<body>" << head["Date"] << "\n";
+        os  << "<blockquote><p>\n"
+            << "Server-Address: "  << socketinfo_.hostAddr() << br
+            << "Server-Name: "     << socketinfo_.hostName() << br
+            << "Server-Port: "     << this->port_ << "</p>\n";
+
+        os  << "<p>\n"
+            << "Document-Root: "   << this->root() << br;
+
+        // The CGI-bin may not be enabled
+        os  << "CGI-bin: ";
+        if (this->cgibin().empty())
+        {
+            os  << "not defined for this server";
+        }
+        else
+        {
+            os  << this->cgibin();
+        }
+        os  << "</p></blockquote>\n"
+            << "<hr />"
+            << this->name() << "</body></html>\n";
+    }
+
+    return 0;
+}
+
+
 int markutil::HttpServer::server_info(std::ostream& os, HttpHeader& head) const
 {
     RequestType& req = head.request();
@@ -531,7 +577,7 @@ int markutil::HttpServer::server_info(std::ostream& os, HttpHeader& head) const
         }
         else
         {
-            os << this->cgibin();
+            os  << this->cgibin();
         }
         os  << br;
 
@@ -658,13 +704,51 @@ int markutil::HttpServer::reply(std::ostream& os, HttpHeader& head) const
     }
 
     // some of ours
+    if (req.path() == "/about")
+    {
+        return this->server_about(os, head);
+    }
+
     if (req.path() == "/server-info")
     {
         return this->server_info(os, head);
     }
 
 
-    std::string mimeType = HttpCore::lookupMime(req.ext());
+    // the file name and file-descriptor
+    std::string file = this->root() + req.path();
+    std::string mimeType;
+    int fileFd = -1;
+
+
+    // rewrite rules:
+    // - convert trailing slash to index.html file
+    // - special treatment for "/" request:
+    //   * return server-about if there is no index.html
+    //
+    if (*(file.rbegin()) == '/')
+    {
+        file += "index.html";
+        fileFd = ::open(file.c_str(), O_RDONLY);
+
+        if (fileFd == -1)
+        {
+            if (req.path() == "/")
+            {
+                return this->server_about(os, head);
+            }
+        }
+        else
+        {
+            mimeType = HttpCore::lookupMime("html");
+        }
+    }
+    else
+    {
+        mimeType = HttpCore::lookupMime(req.ext());
+    }
+
+
     if (mimeType.empty())
     {
         head(head._404_NOT_FOUND);
@@ -674,9 +758,12 @@ int markutil::HttpServer::reply(std::ostream& os, HttpHeader& head) const
     }
 
 
-    // open the file for reading
-    const std::string file = this->root() + req.path();
-    int fileFd = ::open(file.c_str(), O_RDONLY);
+    // open the file for reading if not previously opened
+    if (fileFd == -1)
+    {
+        fileFd = ::open(file.c_str(), O_RDONLY);
+    }
+
     if (fileFd == -1)
     {
         head(head._404_NOT_FOUND);
@@ -695,6 +782,8 @@ int markutil::HttpServer::reply(std::ostream& os, HttpHeader& head) const
             os.write(buffer, nbyte);
         }
     }
+
+    ::close(fileFd);
 
     return 0;
 }

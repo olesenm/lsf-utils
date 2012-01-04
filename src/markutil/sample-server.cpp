@@ -169,24 +169,12 @@ public:
                 return 1;
             }
 
-            RequestType& req = head.request();
-
-            // rewrite rules
-            const std::string& url = req.path();
+            const std::string& url = head.request().path();
 
             if (url == "/debug-query")
             {
                 return this->debug_query(os, head);
             }
-
-
-            // rewrite rules
-            // convert trailing slash to index.html file
-            if (!req.path().empty() && *(req.path().rbegin()) == '/')
-            {
-                req.requestURI(req.path() + "index.html");
-            }
-
 
             // catch balance with standard document serving
             return this->ParentClass::reply(os, head);
