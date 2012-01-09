@@ -89,14 +89,14 @@ lsfutil::LsfJobEntry::LsfJobEntry(const struct jobInfoEnt& job)
 {
     fixDirName(cwd);
 
-    if (job.jStartNumExHosts)
+    if (job.numExHosts)
     {
-        execHosts.reserve(job.jStartNumExHosts);
+        execHosts.reserve(job.numExHosts);
 
         // Host list when job starts
-        for (int i=0; i < job.jStartNumExHosts; ++i)
+        for (int i=0; i < job.numExHosts; ++i)
         {
-            execHosts.push_back((job.jStartExHosts)[i]);
+            execHosts.push_back((job.exHosts)[i]);
         }
     }
 
@@ -149,6 +149,17 @@ std::string lsfutil::LsfJobEntry::tokenJ() const
 }
 
 
+std::string lsfutil::LsfJobEntry::fqJobId() const
+{
+    std::string val = makeString(jobId);
+    if (taskId)
+    {
+        val += '.' + makeString(taskId);
+    }
+    return val;
+}
+
+
 bool lsfutil::LsfJobEntry::isPending() const
 {
     return status == "pending";
@@ -196,7 +207,7 @@ std::ostream& lsfutil::LsfJobEntry::dump(std::ostream& os) const
     os  << "execRusage: " << execRusage << "\n";
 
     os  << "execHosts: (";
-    for (unsigned i=0; i << execHosts.size(); ++i)
+    for (unsigned i=0; i < execHosts.size(); ++i)
     {
         if (i)
         {

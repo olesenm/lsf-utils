@@ -33,6 +33,7 @@ SourceFiles
 
 #include <iostream>
 
+#include "lsfutil/LsfJobList.hpp"
 #include "lsfutil/LsfHostList.hpp"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -49,12 +50,22 @@ class OutputQhost
     // Private Member Functions
 
         //- Print host information in XML format
-        static std::ostream& print(std::ostream&, const LsfHostEntry&);
+        static std::ostream& print
+        (
+            std::ostream&,
+            const LsfHostEntry&,
+            const LsfJobList&
+        );
 
 public:
 
         //- Print host list information in XML format
-        static std::ostream& print(std::ostream&, const LsfHostList&);
+        static std::ostream& print
+        (
+            std::ostream&,
+            const LsfHostList&,
+            const LsfJobList&
+        );
 
 };
 

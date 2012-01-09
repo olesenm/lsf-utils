@@ -276,9 +276,10 @@ class LsfServer
 
     int serve_qhost_xml(std::ostream& os, HeaderType& head) const
     {
+        lsfutil::LsfJobList jobs;
         lsfutil::LsfHostList hosts;
 
-        if (hosts.hasError())
+        if (jobs.hasError() || hosts.hasError())
         {
             head(head._503_SERVICE_UNAVAILABLE);
             head.print(os, true);
@@ -291,7 +292,7 @@ class LsfServer
 
         if (head.request().type() == head.request().GET)
         {
-            lsfutil::OutputQhost::print(os, hosts);
+            lsfutil::OutputQhost::print(os, hosts, jobs);
         }
 
         return 0;

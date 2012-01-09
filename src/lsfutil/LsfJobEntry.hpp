@@ -127,7 +127,7 @@ public:
         //! The rusage satisfied at job runtime
         std::string execRusage;
 
-        //! Host list when job starts
+        //! Host list for job
         std::vector<std::string> execHosts;
 
 
@@ -157,6 +157,10 @@ public:
         }
 
         std::string tokenJ() const;
+
+        //- Fully qualified job id (id + task);
+        std::string fqJobId() const;
+
 
         bool isPending() const;
         bool isDone() const;

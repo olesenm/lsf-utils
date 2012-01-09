@@ -22,15 +22,14 @@ License
 #include "lsfutil/OutputQhost.hpp"
 #include "lsfutil/XmlUtils.hpp"
 
-#include <iomanip>
-
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
 std::ostream&
 lsfutil::OutputQhost::print
 (
     std::ostream& os,
-    const lsfutil::LsfHostEntry& host
+    const lsfutil::LsfHostEntry& host,
+    const lsfutil::LsfJobList& jlist
 )
 {
     char buffer[32];
@@ -69,7 +68,8 @@ lsfutil::OutputQhost::print
     // max of 3 decimal places
     snprintf(buffer, sizeof(buffer)-1, "%.3f", host.load_15m);
     os  << xml::indent << "<hostvalue name='load_avg'>"
-        << buffer <<  "</hostvalue>\n";
+        << buffer
+        << "</hostvalue>\n";
 
     os  << xml::indent << "<hostvalue name='mem_free'>"
         << host.free_mem <<  "M</hostvalue>\n";
@@ -78,21 +78,102 @@ lsfutil::OutputQhost::print
         << host.free_swp <<  "M</hostvalue>\n";
 
 
+    // count slots used per queue instance
+    std::map<std::string, int> slots_used;
+    for (unsigned queueI = 0; queueI < host.queues.size(); ++queueI)
+    {
+        const std::string& queueName = host.queues[queueI];
+        slots_used[queueName] = 0;
+    }
+
+
+    // write job information and count slots
+    for (unsigned jobI = 0; jobI < jlist.size(); ++jobI)
+    {
+        const LsfJobEntry& job = jlist[jobI];
+        const std::string& queueName = job.submit.queue;
+
+        std::string commonAttr;
+        for (unsigned hostI = 0; hostI < job.execHosts.size(); ++hostI)
+        {
+            const std::string& hostName  = job.execHosts[hostI];
+
+            if (hostName != host.name)
+            {
+                continue;
+            }
+            else if (commonAttr.empty())
+            {
+                commonAttr = "<jobvalue jobid='" + job.fqJobId() + "' name='";
+            }
+
+            slots_used[queueName] = slots_used[queueName] + 1;
+
+            os  << xml::indent0 << "<job name='" << job.fqJobId() << "'>\n";
+
+
+            // queue instance
+            os  << xml::indent << commonAttr << "qinstance_name" << "'>"
+                << job.submit.queue << "@" << hostName
+                << "</jobvalue>\n";
+
+            os  << xml::indent << commonAttr << "job_name" << "'>"
+                << job.submit.jobName
+                << "</jobvalue>\n";
+
+            os  << xml::indent << commonAttr << "job_owner" << "'>"
+                << job.user
+                << "</jobvalue>\n";
+
+            os  << xml::indent << commonAttr << "job_state" << "'>";
+            if (job.isRunning())
+            {
+                os  << "r";
+            }
+            else if (job.isSuspend())
+            {
+                os  << "s";
+            }
+
+            os  << "</jobvalue>\n";
+
+            os  << xml::indent << commonAttr << "start_time" << "'>"
+                << job.startTime << "</jobvalue>\n";
+
+            os  << xml::indent << commonAttr << "pe_master" << "'>";
+            os  << (hostI ? "SLAVE" : "MASTER");
+            os  << "</jobvalue>\n";
+            os  << xml::indent0 << "</job>\n";
+        }
+    }
+
+
     // write queue information
     for (unsigned queueI = 0; queueI < host.queues.size(); ++queueI)
     {
-        os  << xml::indent0 << "<queue name='" << host.queues[queueI] << "'>\n";
+        const std::string& queueName = host.queues[queueI];
 
-        std::string commonAttr = "<queuevalue qname='" + host.queues[queueI] + "' name='";
+        os  << xml::indent0 << "<queue name='" << queueName << "'>\n";
 
-        // write queue values
+        std::string commonAttr = "<queuevalue qname='" + queueName + "' name='";
+
+        // assume everything is BATCH
         os  << xml::indent << commonAttr << "qtype_string" << "'>"
             << "BP"
             << "</queuevalue>\n";
 
-        // write queue values
+        // slots used
+        os  << xml::indent << commonAttr << "slots_used" << "'>"
+            << slots_used[queueName]
+            << "</queuevalue>\n";
+
+        // total jobs slots
         os  << xml::indent << commonAttr << "slots" << "'>"
-            << 2
+            << host.maxJobs
+            << "</queuevalue>\n";
+
+        // 'S' for suspend etc
+        os  << xml::indent << commonAttr << "state_string" << "'>"
             << "</queuevalue>\n";
 
         os  << xml::indent0 << "</queue>\n";
@@ -110,7 +191,8 @@ std::ostream&
 lsfutil::OutputQhost::print
 (
     std::ostream& os,
-    const lsfutil::LsfHostList& list
+    const lsfutil::LsfHostList& list,
+    const lsfutil::LsfJobList& jlist
 )
 {
     os  << "<?xml version='1.0'?>\n";
@@ -128,7 +210,7 @@ lsfutil::OutputQhost::print
 
     for (unsigned hostI = 0; hostI < list.size(); ++hostI)
     {
-        print(os, list[hostI]);
+        print(os, list[hostI], jlist);
     }
 
     os  << "</qhost>\n";

@@ -72,8 +72,9 @@ int main(int argc, char **argv)
 
     if (url == "/qhost.xml")
     {
+        lsfutil::LsfJobList jobs;
         lsfutil::LsfHostList hosts;
-        lsfutil::OutputQhost::print(std::cout, hosts);
+        lsfutil::OutputQhost::print(std::cout, hosts, jobs);
         return 0;
     }
 

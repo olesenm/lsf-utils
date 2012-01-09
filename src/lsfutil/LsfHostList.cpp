@@ -81,7 +81,7 @@ bool lsfutil::LsfHostList::update()
 
             int numQueues = 0;   // get all queues
 
-            // gets the total number of hosts, return NULL on failure
+            // gets the total number of queues, return NULL on failure
             struct queueInfoEnt *queueArray = lsb_queueinfo
             (
                 NULL,
@@ -124,13 +124,10 @@ bool lsfutil::LsfHostList::update()
                         }
                     }
 
+                    // TODO: add job information ...
 //                    std::cerr
 //                        <<"queue: " << queueInfo->queue << "\n"
 //                        <<"  hostList: " << queueInfo->hostList << "\n";
-//                    if (job)
-//                    {
-//                        this->push_back(lsfutil::LsfHostEntry(*job));
-//                    }
                 }
             }
 
