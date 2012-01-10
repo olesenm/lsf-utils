@@ -43,8 +43,8 @@ lsfutil::OutputQstat::print
 
     if (job.taskId)
     {
-        os  << xml::indent << "<TODOtask-id>"
-            << job.taskId << "</TODOtask-id>\n";
+        os  << xml::indent << "<tasks>"
+            << job.taskId << "</tasks>\n";
     }
 
     // The name of the user who submitted the job

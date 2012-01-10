@@ -21,22 +21,7 @@ License
 
 #include "lsfutil/LsfHostEntry.hpp"
 
-#include <cstring>
-#include <sstream>
-
 #include <lsf/lsbatch.h>
-
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
-
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -80,19 +65,11 @@ std::ostream& lsfutil::LsfHostEntry::dump(std::ostream& os) const
 
     for (unsigned queueI = 0; queueI < queues.size(); ++queueI)
     {
-        os << "    queue: " << queues[queueI] << "\n";
+        os  << "    queue: " << queues[queueI] << "\n";
     }
 
     return os;
 }
-
-// * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * * Friend Functions  * * * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * * Friend Operators * * * * * * * * * * * * * * //
 
 
 /* ************************************************************************* */

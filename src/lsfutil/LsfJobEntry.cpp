@@ -22,11 +22,7 @@ License
 #include "lsfutil/LsfJobEntry.hpp"
 
 #include <cstring>
-#include <sstream>
-
 #include <lsf/lsbatch.h>
-
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 
 // * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
@@ -54,12 +50,6 @@ std::string lsfutil::LsfJobEntry::jobStatusToString(int stat)
         return "unknown";
     }
 }
-
-
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -227,14 +217,6 @@ std::ostream& lsfutil::LsfJobEntry::dump(std::ostream& os) const
     os  << "exitStatus: " << exitStatus << "\n";
     return os;
 }
-
-// * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * * Friend Functions  * * * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * * Friend Operators * * * * * * * * * * * * * * //
 
 
 /* ************************************************************************* */

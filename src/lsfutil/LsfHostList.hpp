@@ -53,25 +53,25 @@ class LsfHostList
 {
     // Private data
 
-        //! The last update time
+        //- The last update time
         time_t lastUpdate_;
 
-        //! The update interval
+        //- The update interval
         unsigned interval_;
 
-        //! Error
+        //- Error
         bool error_;
 
 public:
 
     // Constructors
 
-        //! Construct with a given update interval
+        //- Construct with a given update interval
         //  In the future, allow for internal caching
         LsfHostList(unsigned interval = 10);
 
 
-    //! Destructor
+    //- Destructor
     ~LsfHostList();
 
 

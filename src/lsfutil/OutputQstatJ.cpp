@@ -70,7 +70,7 @@ lsfutil::OutputQstatJ::print
 
     if (rusage.size())
     {
-        os << xml::indent << "<JB_hard_resource_list>\n";
+        os  << xml::indent << "<JB_hard_resource_list>\n";
 
         for
         (
@@ -91,7 +91,7 @@ lsfutil::OutputQstatJ::print
                 << "</qstat_l_requests>\n";
         }
 
-        os << xml::indent << "</JB_hard_resource_list>\n";
+        os  << xml::indent << "</JB_hard_resource_list>\n";
     }
 
     os  << xml::indent
@@ -135,6 +135,11 @@ lsfutil::OutputQstatJ::print
 
     os  << "</JAT_status>\n";
 
+    if (job.taskId)
+    {
+        os  << xml::indent << xml::indent << "<JAT_task_number>"
+            << job.taskId << "</JAT_task_number>\n";
+    }
 
     os  << xml::indent << xml::indent0
         << "</ulong_sublist>\n";

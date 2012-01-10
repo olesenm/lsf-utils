@@ -75,69 +75,69 @@ public:
 
         LsfJobSubEntry submit;
 
-        //! The job ID that the LSF system assigned to the job
+        //- The job ID that the LSF system assigned to the job
         //  split into job-id + task-id
         int jobId;
         int taskId;
 
         std::string status;
 
-        //! The name of the user who submitted the job
+        //- The name of the user who submitted the job
         std::string user;
 
-        //! The time the job was submitted, in seconds since 00:00:00 GMT, Jan. 1, 1970.
+        //- The time the job was submitted, in seconds since 00:00:00 GMT, Jan. 1, 1970.
         time_t submitTime;
 
-        //! Time when job slots are reserved
+        //- Time when job slots are reserved
         time_t reserveTime;
 
-        //! The time that the job started running, if it has been dispatched
+        //- The time that the job started running, if it has been dispatched
         time_t startTime;
 
-        //! Job's predicted start time
+        //- Job's predicted start time
         time_t predictedStartTime;
 
-        //! The termination time of the job, if it has completed.
+        //- The termination time of the job, if it has completed.
         time_t endTime;
 
-        //! Duration time (minutes)
+        //- Duration time (minutes)
         int duration;
 
-        //! The CPU time (float) consumed by the job
+        //- The CPU time (float) consumed by the job
         float cpuTime;
 
-        //! The file creation mask when the job was submitted.
+        //- The file creation mask when the job was submitted.
         int umask;
 
-        //! The current working directory when the job was submitted.
+        //- The current working directory when the job was submitted.
         std::string cwd;
 
-        //! Home directory on submission host.
+        //- Home directory on submission host.
         std::string subHomeDir;
 
-        //! The name of the host from which the job was submitted.
+        //- The name of the host from which the job was submitted.
         std::string fromHost;
 
-        //! Job exit status
+        //- Job exit status
         int exitStatus;
 
-        //! Home directory for the job on the execution host
+        //- Home directory for the job on the execution host
         std::string execHome;
 
-        //! The rusage satisfied at job runtime
+        //- The rusage satisfied at job runtime
         std::string execRusage;
 
-        //! Host list for job
+        //- Host list for job
         std::vector<std::string> execHosts;
 
 
     // Constructors
 
-        //! Construct from jobInfoEnt
+        //- Construct from jobInfoEnt
         LsfJobEntry(const jobInfoEnt&);
 
 
-    //! Destructor
+    //- Destructor
     ~LsfJobEntry();
 
 
@@ -145,44 +145,33 @@ public:
 
         // Access
 
-        //! The name relative to the cwd
-        std::string relativeFilePath(const std::string& name) const;
+            //- The name relative to the cwd
+            std::string relativeFilePath(const std::string& name) const;
+
+            //- Fully qualified job id (id + task);
+            std::string fqJobId() const;
+
+            //- The jobid as a string
+            std::string tokenJ() const;
 
 
         // Check
 
-        inline bool hasTasks() const
-        {
-            return taskId > 0;
-        }
+            inline bool hasTasks() const
+            {
+                return taskId > 0;
+            }
 
-        std::string tokenJ() const;
+            bool isPending() const;
+            bool isDone() const;
+            bool isSuspend() const;
+            bool isRunning() const;
 
-        //- Fully qualified job id (id + task);
-        std::string fqJobId() const;
-
-
-        bool isPending() const;
-        bool isDone() const;
-        bool isSuspend() const;
-        bool isRunning() const;
-
-        // Edit
 
         // Write
 
             //- Raw dump of information in text format
             std::ostream& dump(std::ostream&) const;
-
-
-    // Member Operators
-
-
-    // Friend Functions
-
-    // Friend Operators
-
-    // IOstream Operators
 
 };
 

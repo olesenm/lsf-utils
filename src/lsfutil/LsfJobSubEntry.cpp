@@ -24,6 +24,7 @@ License
 #include <iostream>
 #include <lsf/lsbatch.h>
 
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 lsfutil::LsfJobSubEntry::LsfJobSubEntry(const struct submit& sub)
@@ -100,7 +101,6 @@ lsfutil::LsfJobSubEntry::LsfJobSubEntry(const struct submit& sub)
     }
 
 }
-
 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
