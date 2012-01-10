@@ -88,6 +88,13 @@ lsfutil::LsfJobEntry::LsfJobEntry(const struct jobInfoEnt& job)
     execHosts()
 {
     fixDirName(cwd);
+    fixDirName(subHomeDir);
+
+    // relative CWD? - assume it was relative to subHomeDir
+    if (cwd.size() && cwd[0] != '/' && subHomeDir.size())
+    {
+        cwd = subHomeDir + '/' + cwd;
+    }
 
     if (job.numExHosts)
     {

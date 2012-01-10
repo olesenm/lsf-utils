@@ -43,7 +43,7 @@ std::string lsfutil::LsfCore::makeString(int i)
 bool lsfutil::LsfCore::fixDirName(std::string& name)
 {
     bool changed = false;
-    while (name.size() > 1 && name[name.size()-1] == '/')
+    while (name.size() > 1 && *(name.rbegin()) == '/')
     {
         name.resize(name.size()-1);
         changed = true;

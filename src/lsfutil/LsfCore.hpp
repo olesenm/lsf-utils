@@ -89,10 +89,10 @@ public:
     static std::string makeString(int i);
 
 
-    //- Remove trailing '/' from dir names
+    //- Remove trailing '/' from dir name
     static bool fixDirName(std::string& name);
 
-    //- Remove leading './' from file names
+    //- Remove leading './' from file name
     static bool fixFileName(std::string& name);
 
     //- Replace all occurrences of a given string
