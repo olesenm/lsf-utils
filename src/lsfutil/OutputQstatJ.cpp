@@ -47,7 +47,7 @@ lsfutil::OutputQstatJ::print
     // The name of the user who submitted the job
     os  << xml::indent << xml::Tag("JB_owner", job.user) << "\n";
 
-    os  << xml::indent << xml::Tag("JB_job_name", job.submit.jobName) << "\n";
+    os  << xml::indent << xml::Tag("JB_job_name", sub.jobName) << "\n";
 
     os  << xml::indent << "<JB_stdout_path_list>\n"
         << xml::indent << xml::indent0 << "<path_list>\n";
@@ -58,6 +58,12 @@ lsfutil::OutputQstatJ::print
     os  << xml::indent << xml::indent0 << "</path_list>\n"
         << xml::indent << "</JB_stdout_path_list>\n";
 
+
+    if (sub.queue.size())
+    {
+        os  << xml::indent
+            << xml::Tag("JB_hard_queue_list", sub.queue) << "\n";
+    }
 
     // rusage
     LsfCore::rusage_map rusage = LsfCore::parseRusage(sub.resReq);
@@ -169,18 +175,22 @@ lsfutil::OutputQstatJ::print
     // active jobs:
     for (unsigned jobI = 0; jobI < list.size(); ++jobI)
     {
-        if (list[jobI].isRunning())
+        const lsfutil::LsfJobEntry& job = list[jobI];
+
+        if (job.isRunning())
         {
-            print(os, list[jobI]);
+            print(os, job);
         }
     }
 
     // pending jobs:
     for (unsigned jobI = 0; jobI < list.size(); ++jobI)
     {
-        if (list[jobI].isPending())
+        const lsfutil::LsfJobEntry& job = list[jobI];
+
+        if (job.isPending())
         {
-            print(os, list[jobI]);
+            print(os, job);
         }
     }
 
@@ -217,20 +227,22 @@ lsfutil::OutputQstatJ::print
     // active jobs:
     for (unsigned idxI = 0; idxI < indices.size(); ++idxI)
     {
-        int jobI = indices[idxI];
-        if (list[jobI].isRunning())
+        const lsfutil::LsfJobEntry& job = list[indices[idxI]];
+
+        if (job.isRunning())
         {
-            print(os, list[jobI]);
+            print(os, job);
         }
     }
 
     // pending jobs:
     for (unsigned idxI = 0; idxI < indices.size(); ++idxI)
     {
-        int jobI = indices[idxI];
-        if (list[jobI].isPending())
+        const lsfutil::LsfJobEntry& job = list[indices[idxI]];
+
+        if (job.isPending())
         {
-            print(os, list[jobI]);
+            print(os, job);
         }
     }
 
