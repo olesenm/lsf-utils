@@ -68,7 +68,7 @@ MKDIR           = mkdir
 
 LIBNAME = lsfutils
 LIB = lib$(LIBNAME).a
-BINS = lsf-direct lsf-server
+BINS = lsf-direct lsf-server sample-server
 
 ####### Files
 
