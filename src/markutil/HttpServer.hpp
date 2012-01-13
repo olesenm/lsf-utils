@@ -202,6 +202,14 @@ public:
             //- Reply with server information as html
             virtual int server_info(std::ostream&, HttpHeader&) const;
 
+            //- Extra content to add into server_about
+            virtual void content_about(std::ostream&, const HttpHeader&) const
+            {}
+
+            //- Extra content to add into server_info
+            virtual void content_info(std::ostream&, const HttpHeader&) const
+            {}
+
 };
 
 

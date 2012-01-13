@@ -53,7 +53,7 @@ class SampleServer
     //! Specialized server-info
     int debug_query(std::ostream& os, HeaderType& head) const
     {
-        RequestType& req = head.request();
+        const RequestType& req = head.request();
 
         os  << head(head._200_OK);
 

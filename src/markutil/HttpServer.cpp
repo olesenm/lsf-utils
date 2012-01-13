@@ -152,7 +152,7 @@ const
 
 void markutil::HttpServer::setCgiEnv(int fd, HttpHeader& head) const
 {
-    HttpRequest& req = head.request();
+    const HttpRequest& req = head.request();
     std::string script_url = req.path();
 
     // we might need the requested "Host:" as a fallback value
@@ -498,7 +498,7 @@ int markutil::HttpServer::run()
 
 int markutil::HttpServer::server_about(std::ostream& os, HttpHeader& head) const
 {
-    RequestType& req = head.request();
+    const RequestType& req = head.request();
 
     const char* const br = "<br />\n";
 
@@ -533,8 +533,11 @@ int markutil::HttpServer::server_about(std::ostream& os, HttpHeader& head) const
         {
             os  << this->cgibin();
         }
-        os  << "</p></blockquote>\n"
-            << "<hr />"
+        os  << "</p></blockquote>\n";
+
+        this->content_about(os, head);
+
+        os << "<hr />"
             << this->name() << "</body></html>\n";
     }
 
@@ -544,7 +547,7 @@ int markutil::HttpServer::server_about(std::ostream& os, HttpHeader& head) const
 
 int markutil::HttpServer::server_info(std::ostream& os, HttpHeader& head) const
 {
-    RequestType& req = head.request();
+    const RequestType& req = head.request();
 
     const char* const br = "<br />\n";
 
@@ -601,7 +604,11 @@ int markutil::HttpServer::server_info(std::ostream& os, HttpHeader& head) const
             os  << iter->first << ": ";
             xmlEscapeChars(os, iter->second) << br;
         }
-        os  << "</blockquote><hr />";
+        os  << "</blockquote>\n";
+
+        this->content_info(os, head);
+
+        os  << " <hr />";
         os  << "</body></html>\n";
     }
 
