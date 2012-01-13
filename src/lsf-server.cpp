@@ -380,6 +380,23 @@ class LsfServer
     }
 
 
+    //- print env
+    static void printenv(std::ostream& os, const std::string& name)
+    {
+        const char* val = getenv(name.c_str());
+
+        os << name << "=";
+        if (val)
+        {
+            os  << val << "\n";
+        }
+        else
+        {
+            os  << "\n";
+        }
+    }
+
+
 public:
 
     typedef markutil::HttpServer ParentClass;
@@ -396,7 +413,24 @@ public:
         }
 
 
-    // General Operation
+        //- Extra content for about
+        virtual void content_about
+        (
+            std::ostream& os,
+            const HeaderType& head
+        ) const
+        {
+            os  << "LSF env:\n"
+                << "<blockquote><pre>\n";
+
+            printenv(os, "LSF_ENVDIR");
+            printenv(os, "LSF_BINDIR");
+            printenv(os, "LSF_LIBDIR");
+            printenv(os, "LSF_SERVERDIR");
+
+            os  << "</pre></blockquote>\n";
+        }
+
 
         //! Specialized reply
         virtual int reply(std::ostream& os, HeaderType& head) const
