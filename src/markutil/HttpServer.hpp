@@ -38,7 +38,6 @@ Notes
 #define MARK_HTTP_SERVER_H
 
 #include "markutil/HttpHeader.hpp"
-#include "markutil/SocketInfo.hpp"
 #include "markutil/SocketServer.hpp"
 
 #include <iostream>
@@ -74,9 +73,6 @@ class HttpServer
 
         //- The cgi-bin
         std::string cgibin_;
-
-        //- The host/peer socket information
-        SocketInfo socketinfo_;
 
 
     // Private Member Functions

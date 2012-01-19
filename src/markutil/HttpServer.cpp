@@ -167,22 +167,22 @@ void markutil::HttpServer::setCgiEnv(int fd, HttpHeader& head) const
     // REMOTE_ADDR, REMOTE_PORT from socket information
     // and REMOTE_HOST from gethostbyaddr
     //
-    setenv("REMOTE_ADDR", socketinfo_.peerAddr().c_str(), 1);
-    setenv("REMOTE_HOST", socketinfo_.peerName().c_str(), 1);
-    setenv("REMOTE_PORT", socketinfo_.peerPort().c_str(), 1);
+    setenv("REMOTE_ADDR", req.socketInfo().peerAddr().c_str(), 1);
+    setenv("REMOTE_HOST", req.socketInfo().peerName().c_str(), 1);
+    setenv("REMOTE_PORT", req.socketInfo().peerPort().c_str(), 1);
 
     //
     // SERVER_ADDR, SERVER_PORT from socket information
     // and SERVER_NAME from gethostbyaddr
     //
-    setenv("SERVER_ADDR", socketinfo_.hostAddr().c_str(), 1);
-    setenv("SERVER_NAME", socketinfo_.hostName().c_str(), 1);
-    setenv("SERVER_PORT", socketinfo_.hostPort().c_str(), 1);
+    setenv("SERVER_ADDR", req.socketInfo().hostAddr().c_str(), 1);
+    setenv("SERVER_NAME", req.socketInfo().hostName().c_str(), 1);
+    setenv("SERVER_PORT", req.socketInfo().hostPort().c_str(), 1);
 
-    std::string server_url = "http://" + socketinfo_.hostName();
-    if (socketinfo_.hostPort().size() && socketinfo_.hostPort() != "80")
+    std::string server_url = "http://" + req.socketInfo().hostName();
+    if (req.socketInfo().hostPort().size() && req.socketInfo().hostPort() != "80")
     {
-        server_url += ":" + socketinfo_.hostPort();
+        server_url += ":" + req.socketInfo().hostPort();
     }
 
 
@@ -443,7 +443,7 @@ int markutil::HttpServer::run()
             head.request().readHeader(is);
 
             // fill host/peer information
-            socketinfo_.setInfo(sockfd);
+            head.request().socketInfo().setInfo(sockfd);
 
 
             // check for cgi-bin
@@ -516,8 +516,8 @@ int markutil::HttpServer::server_about(std::ostream& os, HttpHeader& head) const
 
         os  << "<body>" << head["Date"] << "\n";
         os  << "<blockquote><p>\n"
-            << "Server-Address: "  << socketinfo_.hostAddr() << br
-            << "Server-Name: "     << socketinfo_.hostName() << br
+            << "Server-Address: "  << req.socketInfo().hostAddr() << br
+            << "Server-Name: "     << req.socketInfo().hostName() << br
             << "Server-Port: "     << this->port_ << "</p>\n";
 
         os  << "<p>\n"
@@ -564,12 +564,12 @@ int markutil::HttpServer::server_info(std::ostream& os, HttpHeader& head) const
             << "<hr /><h3>Server Info</h3><blockquote>\n"
             << "Date: "            << head["Date"] << br
             << "Server-Software: " << this->name() << br
-            << "Server-Address: "  << socketinfo_.hostAddr() << br
-            << "Server-Name: "     << socketinfo_.hostName() << br
+            << "Server-Address: "  << req.socketInfo().hostAddr() << br
+            << "Server-Name: "     << req.socketInfo().hostName() << br
             << "Server-Port: "     << this->port_ << br
-            << "Remote-Address: "  << socketinfo_.peerAddr() << br
-            << "Remote-Name: "     << socketinfo_.peerName() << br
-            << "Remote-Port: "     << socketinfo_.peerPort() << br
+            << "Remote-Address: "  << req.socketInfo().peerAddr() << br
+            << "Remote-Name: "     << req.socketInfo().peerName() << br
+            << "Remote-Port: "     << req.socketInfo().peerPort() << br
             << "Document-Root: "   << this->root() << br;
 
         // The CGI-bin may not be enabled

@@ -35,6 +35,7 @@ SeeAlso
 
 #include "markutil/HttpCore.hpp"
 #include "markutil/HttpQuery.hpp"
+#include "markutil/SocketInfo.hpp"
 #include <iostream>
 
 
@@ -92,6 +93,9 @@ private:
 
         //- The HTTP version, eg HTTP/1.0
         std::string httpver_;
+
+        //- The host/peer socket information
+        SocketInfo socketinfo_;
 
 
     // Private Member Functions
@@ -165,6 +169,14 @@ public:
 
             //! \brief Return the extension of the path
             std::string ext() const;
+
+            //- The host/peer socket information
+            const SocketInfo& socketInfo() const;
+
+        // Edit
+
+            //- The host/peer socket information
+            SocketInfo& socketInfo();
 
 
         // Write

@@ -328,6 +328,18 @@ const markutil::HttpQuery& markutil::HttpRequest::query() const
 }
 
 
+const markutil::SocketInfo& markutil::HttpRequest::socketInfo() const
+{
+    return socketinfo_;
+}
+
+
+markutil::SocketInfo& markutil::HttpRequest::socketInfo()
+{
+    return socketinfo_;
+}
+
+
 std::ostream& markutil::HttpRequest::print(std::ostream& os) const
 {
     os  << method_ << " " << requestURI() << "\r\n";
