@@ -518,7 +518,9 @@ int markutil::HttpServer::server_about(std::ostream& os, HttpHeader& head) const
         os  << "<blockquote><p>\n"
             << "Server-Address: "  << req.socketInfo().hostAddr() << br
             << "Server-Name: "     << req.socketInfo().hostName() << br
-            << "Server-Port: "     << this->port_ << "</p>\n";
+            << "Server-Port: "     << this->port_ << br
+            << "Remote-Address: "  << req.socketInfo().peerAddr() << br
+            << "Remote-Name: "     << req.socketInfo().peerName() << "</p>\n";
 
         os  << "<p>\n"
             << "Document-Root: "   << this->root() << br;
