@@ -446,6 +446,7 @@ int markutil::HttpServer::run()
             // fill host/peer information
             head.request().socketInfo().setInfo(sockfd);
 
+            int ret = 1;    // assume failure
 
             // check for cgi-bin
             const std::string& url = head.request().path();
@@ -459,7 +460,7 @@ int markutil::HttpServer::run()
              && url[len] == '/'
             )
             {
-                int ret = 1;
+                // serve cgi-bin
                 if (url.size() == len+1)
                 {
                     head(head._403_FORBIDDEN);
@@ -479,13 +480,13 @@ int markutil::HttpServer::run()
                     // set CGI environment and serve cgi
                     ret = this->cgi(sockfd, head);
                 }
-#ifdef LINUX
-                sleep(1);      // let socket drain
-#endif
-                return ret;
+            }
+            else
+            {
+                // serve normal document
+                ret = this->reply(os, head);
             }
 
-            int ret = this->reply(os, head);
 #ifdef LINUX
             sleep(1);      // let socket drain
 #endif
