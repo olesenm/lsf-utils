@@ -175,7 +175,7 @@ lsf-server: lsf-server.o $(LIBHDRS) $(LIB) libmarkutil.a
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ $< \
     $(LDFLAGS) -L$(srcdir) -l$(LIBNAME) -lmarkutil $(LD_LSF)
 
-sample-server: markutil/sample-server.cpp libmarkutil.a
+sample-server: sample-server.cpp libmarkutil.a
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ $< \
     $(LDFLAGS) -L$(srcdir)  -lmarkutil
 

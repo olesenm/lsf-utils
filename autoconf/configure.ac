@@ -4,7 +4,7 @@
 AC_PREREQ([2.63])
 AC_INIT([LsfUtil], [beta], [Mark Olesen], [lsfutil])
 AC_CONFIG_AUX_DIR(autoconf)
-AC_CONFIG_SRCDIR([src/lsf-server.cpp])
+AC_CONFIG_SRCDIR([src/sample-server.cpp])
 AC_CONFIG_HEADERS([src/config.h])
 
 # Checks for programs.
