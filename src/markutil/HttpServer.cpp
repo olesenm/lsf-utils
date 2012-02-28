@@ -71,6 +71,7 @@ int markutil::HttpServer::daemonize(const bool doNotExit)
     }
 
     // this is the child
+    ::chdir("/");                 // close reference to cwd
     ::setsid();                   // break away from process group
     ::signal(SIGCLD, SIG_IGN);    // ignore child death
     ::signal(SIGHUP, SIG_IGN);    // ignore terminal hangup
