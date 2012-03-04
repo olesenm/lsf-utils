@@ -56,14 +56,20 @@ protected:
 
     // Protected data
 
+        //! known request methods
+        enum SocketState
+        {
+            UNKNOWN = 0,  //!< unknown/invalid
+            BOUND,        //!< file-descriptor bound to a port
+            LISTENING,    //!< socket listening for connections
+        };
+
+
         //! File-descriptor for socket
         int fd_;
 
-        //! Is file-descriptor bound to a port?
-        bool bound_;
-
-        //! Is socket listening for connections?
-        bool listen_;
+        //! The current socket state
+        SocketState state_;
 
         //! Simple error-tracking mechanism
         std::string error_;
@@ -92,16 +98,19 @@ public:
     // Member Functions
 
         //! \brief Set the port for receiving data
+        //  Only if not already bound
         //  \param port The port number
         //  \return port number on success, 0 on failure
         unsigned short bind(unsigned short port);
 
         //! \brief Set the port for receiving data
+        //  Only if not already bound
         //  \param port The port number
         //  \return port number on success, 0 on failure
         unsigned short bind(const std::string& port);
 
         //! \brief Listen for incoming connections
+        //  Only if not already listening
         //  \return true on success
         bool listen(int backlog = 64);
 
@@ -113,16 +122,10 @@ public:
         void close();
 
         //! \brief Is file-descriptor bound to a port?
-        bool bound() const
-        {
-            return bound_;
-        }
+        bool bound() const;
 
         //! \brief Is socket listening for connections?
-        bool listening() const
-        {
-            return bound_;
-        }
+        bool listening() const;
 
 
         //! \brief Simple error-tracking mechanism

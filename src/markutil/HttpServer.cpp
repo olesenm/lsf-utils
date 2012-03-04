@@ -71,7 +71,7 @@ int markutil::HttpServer::daemonize(const bool doNotExit)
     }
 
     // this is the child
-    ::chdir("/");                 // close reference to cwd
+    ::chdir("/");                 // detach from original directory
     ::setsid();                   // break away from process group
     ::signal(SIGCLD, SIG_IGN);    // ignore child death
     ::signal(SIGHUP, SIG_IGN);    // ignore terminal hangup
@@ -401,14 +401,8 @@ bool markutil::HttpServer::cgiPrefix(const std::string& path)
 
 int markutil::HttpServer::run()
 {
-    if (!this->bound())
-    {
-        this->bind(port_);
-    }
-    if (!this->listening())
-    {
-        this->listen();
-    }
+    this->bind(port_);   // only if not already bound
+    this->listen();      // only if not already listening
 
     while (true)
     {

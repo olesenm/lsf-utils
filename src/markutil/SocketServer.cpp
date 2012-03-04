@@ -32,8 +32,7 @@ License
 
 bool markutil::SocketServer::create(bool reuse)
 {
-    bound_  = false;
-    listen_ = false;
+    state_ = UNKNOWN;
 
     fd_ = ::socket(PF_INET, SOCK_STREAM, 0);
     if (fd_ == -1)
@@ -57,7 +56,7 @@ bool markutil::SocketServer::create(bool reuse)
 
         if (retval == -1)
         {
-            error_ = "setsockopt error";
+            error_ = "SocketServer: setsockopt error";
             this->close();
             return false;
         }
@@ -81,8 +80,7 @@ bool markutil::SocketServer::create(bool reuse)
 markutil::SocketServer::SocketServer(bool reuse)
 :
     fd_(-1),
-    bound_(false),
-    listen_(false),
+    state_(UNKNOWN),
     error_()
 {
     this->create(reuse);
@@ -92,8 +90,7 @@ markutil::SocketServer::SocketServer(bool reuse)
 markutil::SocketServer::SocketServer(unsigned short port, bool reuse)
 :
     fd_(-1),
-    bound_(false),
-    listen_(false),
+    state_(UNKNOWN),
     error_()
 {
     this->create(reuse);
@@ -104,8 +101,7 @@ markutil::SocketServer::SocketServer(unsigned short port, bool reuse)
 markutil::SocketServer::SocketServer(const std::string& port, bool reuse)
 :
     fd_(-1),
-    bound_(false),
-    listen_(false),
+    state_(UNKNOWN),
     error_()
 {
     this->create(reuse);
@@ -116,8 +112,7 @@ markutil::SocketServer::SocketServer(const std::string& port, bool reuse)
 markutil::SocketServer::SocketServer(const char* port, bool reuse)
 :
     fd_(-1),
-    bound_(false),
-    listen_(false),
+    state_(UNKNOWN),
     error_()
 {
     this->create(reuse);
@@ -151,7 +146,13 @@ unsigned short markutil::SocketServer::bind(unsigned short port)
         return 0;
     }
 
-    bound_ =
+    // already bound - assume that the port hadn't changed
+    if (this->bound())
+    {
+        return port;
+    }
+
+    const bool ok =
     (
         -1 != ::bind
         (
@@ -161,7 +162,11 @@ unsigned short markutil::SocketServer::bind(unsigned short port)
         )
     );
 
-    if (!bound_)
+    if (ok)
+    {
+        state_ = BOUND;
+    }
+    else
     {
         error_ = "bind to port failed";
         return 0;
@@ -190,27 +195,39 @@ unsigned short markutil::SocketServer::bind(const std::string& port)
 
 bool markutil::SocketServer::listen(int backlog)
 {
-    listen_ =
+    // already listening
+    if (this->listening())
+    {
+        return true;
+    }
+    else if (!this->bound())
+    {
+        error_ = "listen failed - socket not bound to a port";
+        return false;
+    }
+
+
+    const bool ok =
     (
         -1 != ::listen(fd_, backlog)
     );
 
-    if (!listen_)
+    if (ok)
+    {
+        state_ = LISTENING;
+    }
+    else
     {
         error_ = "listen failed";
     }
-    return listen_;
+
+    return ok;
 }
 
 
 int markutil::SocketServer::accept()
 {
-    // difficult to automatically bind to a port,
-    // but can automatically add a listen()
-    if (!this->listen_)
-    {
-        this->listen();
-    }
+    this->listen();      // only if not already listening
 
     struct sockaddr_in serverAddr;
     socklen_t s = sizeof(serverAddr);
@@ -225,8 +242,19 @@ void markutil::SocketServer::close()
         ::close(fd_);
         fd_ = -1;
     }
-    bound_  = false;
-    listen_ = false;
+    state_ = UNKNOWN;
+}
+
+
+bool markutil::SocketServer::bound() const
+{
+    return state_ >= BOUND;
+}
+
+
+bool markutil::SocketServer::listening() const
+{
+    return state_ >= LISTENING;
 }
 
 
