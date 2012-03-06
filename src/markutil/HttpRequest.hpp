@@ -140,6 +140,10 @@ public:
         //  reads until a blank line
         void readHeader(std::istream&);
 
+        //! Construct new request by reading from an input file descriptor
+        //  reads until a blank line
+        void readHeader(int fd);
+
         //! Clear request, making it invalid
         void clear();
 

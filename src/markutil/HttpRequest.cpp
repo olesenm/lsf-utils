@@ -197,7 +197,6 @@ void markutil::HttpRequest::clear()
 }
 
 
-
 void markutil::HttpRequest::readHeader(std::istream& is)
 {
     this->clear();
@@ -231,6 +230,16 @@ void markutil::HttpRequest::readHeader(std::istream& is)
     }
 
     this->HttpCore::readHeader(is);
+}
+
+
+void markutil::HttpRequest::readHeader(int fd)
+{
+    if (fd >= 0)
+    {
+        boost::fdistream is(fd);
+        this->readHeader(is);
+    }
 }
 
 

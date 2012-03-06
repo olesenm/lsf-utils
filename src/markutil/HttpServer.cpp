@@ -519,14 +519,13 @@ int markutil::HttpServer::run_fork()
         {
             // child
             this->close();
-            boost::fdistream is(sockfd);
             boost::fdostream os(sockfd);
 
             HttpHeader head;
             head("Server", this->name());
 
-            // fill with request
-            head.request().readHeader(is);
+            // fill with request and fill host/peer information
+            head.request().readHeader(sockfd);
 
             // fill host/peer information
             head.request().socketInfo().setInfo(sockfd);
@@ -587,55 +586,53 @@ int markutil::HttpServer::run_select()
             NULL         // timeout - block until something is there
         );
 
-        if (nRead <= 0)
-        {
-            // select error or nothing ready to read, which would
-            // be strange since we blocked
-            continue;
-        }
-
         // run through the existing connections looking for data to read
-        for (int fdI = 0; fdI <= maxFd; ++fdI)
+        for
+        (
+            int nHandled = 0, sockfd = 0;
+            nHandled < nRead && sockfd <= maxFd;
+            ++sockfd
+        )
         {
-            if (!FD_ISSET(fdI, &readFds))
+            if (FD_ISSET(sockfd, &readFds))
             {
-                // skip - not this descriptor
-                continue;
+                ++nHandled;  // abort scanning ASAP
+            }
+            else
+            {
+                continue;    // skip - not this descriptor
             }
 
-            if (fdI == listenFd)
+            if (sockfd == listenFd)
             {
                 // handle new connection
-                const int sockfd = this->accept();
+                const int connectFd = this->accept();
 
-                if (sockfd >= 0)
+                if (connectFd >= 0)
                 {
-                    this->setNonBlocking(sockfd);
-                    FD_SET(sockfd, &monitorFds);
+                    this->setNonBlocking(connectFd);
+                    FD_SET(connectFd, &monitorFds);
 
-                    if (maxFd < sockfd)
+                    if (maxFd < connectFd)
                     {
-                        maxFd = sockfd;
+                        maxFd = connectFd;
                     }
                 }
             }
             else
             {
-                const int sockfd = fdI;
-
-                boost::fdistream is(sockfd);
-                boost::fdostream os(sockfd);
-
                 HttpHeader head;
                 head("Server", this->name());
 
                 // fill with request
-                head.request().readHeader(is);
+                head.request().readHeader(sockfd);
 
                 // fill host/peer information
                 head.request().socketInfo().setInfo(sockfd);
 
                 int ret = 1;    // assume failure
+
+                boost::fdostream os(sockfd);
 
                 // check for cgi-bin
                 if (this->isCgi(head))
