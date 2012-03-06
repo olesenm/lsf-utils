@@ -151,7 +151,7 @@ const
 }
 
 
-void markutil::HttpServer::setCgiEnv(int fd, HttpHeader& head) const
+void markutil::HttpServer::setCgiEnv(HttpHeader& head) const
 {
     const HttpRequest& req = head.request();
     std::string script_url = req.path();
@@ -162,6 +162,10 @@ void markutil::HttpServer::setCgiEnv(int fd, HttpHeader& head) const
     if (http_host.size())
     {
         setenv("HTTP_HOST", http_host.c_str(), 1);
+    }
+    else
+    {
+        unsetenv("HTTP_HOST");
     }
 
     //
@@ -263,6 +267,10 @@ void markutil::HttpServer::setCgiEnv(int fd, HttpHeader& head) const
     if (req["User-Agent"].size())
     {
         setenv("HTTP_USER_AGENT", req["User-Agent"].c_str(), 1);
+    }
+    else
+    {
+        unsetenv("HTTP_USER_AGENT");
     }
 
     //
@@ -622,8 +630,6 @@ int markutil::HttpServer::cgi(int fd, HttpHeader& head) const
         return 1;
     }
 
-    setCgiEnv(fd, head);
-
     const std::string& requestPath = head.request().path();
 
     // convert SCRIPT_URL -> SCRIPT_NAME
@@ -644,7 +650,6 @@ int markutil::HttpServer::cgi(int fd, HttpHeader& head) const
     );
 
     struct stat sb;
-    FILE *pipe;
     int ret = 1;    // assume error
 
     std::string error;
@@ -653,33 +658,37 @@ int markutil::HttpServer::cgi(int fd, HttpHeader& head) const
     {
         error = "does not exist";
     }
-    else if ((pipe = ::popen(cgiProg.c_str(), "r")) != NULL)
-    {
-        int pipeFd = ::fileno(pipe);
-
-        // read and send blockwise - last block may be smaller
-        size_t nread;
-        while ( (nread = ::read(pipeFd, buffer, BufSize)) > 0 )
-        {
-            // okay, we did read something
-            ret = 0;
-
-            size_t noff = 0;
-            while (nread)
-            {
-                size_t nwrite = ::write(fd, &buffer[noff], nread);
-                nread -= nwrite;
-                noff  += nwrite;
-            }
-        }
-
-        pclose(pipe);
-    }
     else
     {
-        error = "could not open a pipe for reading";
-    }
+        setCgiEnv(head);
+        FILE *pipe;
+        if ((pipe = ::popen(cgiProg.c_str(), "r")) != NULL)
+        {
+            int pipeFd = ::fileno(pipe);
 
+            // read and send blockwise - last block may be smaller
+            size_t nread;
+            while ( (nread = ::read(pipeFd, buffer, BufSize)) > 0 )
+            {
+                // okay, we did read something
+                ret = 0;
+
+                size_t noff = 0;
+                while (nread)
+                {
+                    size_t nwrite = ::write(fd, &buffer[noff], nread);
+                    nread -= nwrite;
+                    noff  += nwrite;
+                }
+            }
+
+            pclose(pipe);
+        }
+        else
+        {
+            error = "could not open a pipe for reading";
+        }
+    }
 
     if (ret)
     {

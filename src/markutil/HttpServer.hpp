@@ -87,7 +87,7 @@ protected:
         //- Set CGI environment variables prior to calling cgi() itself
         //  Returns the SCRIPT_NAME for valid requests and an empty
         //  string if there are problems
-        void setCgiEnv(int sockfd, HttpHeader& head) const;
+        void setCgiEnv(HttpHeader& head) const;
 
         //- Check for GET or HEAD, emitting error 405 if it doesn't match
         bool notGetOrHead(std::ostream& os, HttpHeader& head) const;
