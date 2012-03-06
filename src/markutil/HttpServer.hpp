@@ -95,7 +95,15 @@ protected:
 
 public:
 
-    // Typedefs
+    //!  The run-type to use
+    enum RunType
+    {
+        FORKING,    //!< traditional forking server
+        SELECT      //!< select-based server
+    };
+
+
+    // Convenience Typedefs
     //- The header type
     typedef markutil::HttpHeader  HeaderType;
 
@@ -183,7 +191,16 @@ public:
         // General Operation
 
             //- Enter infinite loop, replying to incoming requests
-            int run();
+            //  Use a fork-based server
+            int run_fork();
+
+            //- Enter infinite loop, replying to incoming requests
+            //  Use a select-based server
+            int run_select();
+
+            //- Enter infinite loop, replying to incoming requests
+            //  Use the specified server type
+            int run(RunType how = FORKING);
 
             //- Invoke cgi for incoming request, which is already embedded in the reply header
             //  We are especially lazy and only support Non-Parsed-Headers for now.

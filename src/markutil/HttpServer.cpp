@@ -29,6 +29,7 @@ License
 #include <signal.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <sys/select.h>
 
 #include "fdstream/fdstream.hpp"
 
@@ -406,8 +407,7 @@ bool markutil::HttpServer::cgiPrefix(const std::string& path)
 }
 
 
-
-int markutil::HttpServer::run()
+int markutil::HttpServer::run_fork()
 {
     this->bind(port_);   // only if not already bound
     this->listen();      // only if not already listening
@@ -490,10 +490,170 @@ int markutil::HttpServer::run()
             }
 
 #ifdef LINUX
-            sleep(1);      // let socket drain
+//            sleep(1);      // let socket drain
 #endif
             return ret;
         }
+    }
+
+    return 0;
+}
+
+
+int markutil::HttpServer::run_select()
+{
+    this->setNonBlocking(this->sock());  // make socket non-blocking
+    this->bind(port_);       // only if not already bound
+    this->listen();          // only if not already listening
+
+    const int listenFd = this->sock();
+
+    fd_set monitorFds;
+
+    // add listener to the monitored file descriptors
+    FD_ZERO(&monitorFds);
+    FD_SET(listenFd, &monitorFds);
+
+    // track the largest file descriptor
+    int maxFd = listenFd;  // currently it is the listener
+
+    while (true)
+    {
+        // copy in monitored descriptors
+        fd_set readFds = monitorFds;
+
+        int nRead = ::select
+        (
+            maxFd+1,
+            &readFds,    // readfds
+            NULL,        // writefds
+            NULL,        // exceptfds
+            NULL         // timeout - block until something is there
+        );
+
+        if (nRead <= 0)
+        {
+            // select error or nothing ready to read, which would
+            // be strange since we blocked
+            continue;
+        }
+
+        // run through the existing connections looking for data to read
+        for (int fdI = 0; fdI <= maxFd; ++fdI)
+        {
+            if (!FD_ISSET(fdI, &readFds))
+            {
+                // skip - not this descriptor
+                continue;
+            }
+
+            if (fdI == listenFd)
+            {
+                // handle new connection
+                const int sockfd = this->accept();
+
+                if (sockfd >= 0)
+                {
+                    this->setNonBlocking(sockfd);
+                    FD_SET(sockfd, &monitorFds);
+
+                    if (maxFd < sockfd)
+                    {
+                        maxFd = sockfd;
+                    }
+                }
+            }
+            else
+            {
+                const int sockfd = fdI;
+
+                boost::fdistream is(sockfd);
+                boost::fdostream os(sockfd);
+
+                HttpHeader head;
+                head("Server", this->name());
+
+                // fill with request
+                head.request().readHeader(is);
+
+                // fill host/peer information
+                head.request().socketInfo().setInfo(sockfd);
+
+                int ret = 1;    // assume failure
+
+                // check for cgi-bin
+                const std::string& url = head.request().path();
+                const std::string& prefix = this->cgiPrefix();
+                const size_t len = prefix.size();
+
+                if
+                (
+                    url.size() > len
+                 && url.substr(0, len) == prefix
+                 && url[len] == '/'
+                )
+                {
+                    // serve cgi-bin
+                    if (url.size() == len+1)
+                    {
+                        head(head._403_FORBIDDEN);
+                        head.print(os, true);
+                    }
+                    else if (this->cgibin().empty())
+                    {
+                        head(head._501_NOT_IMPLEMENTED);
+                        head.print(os);
+
+                        head.htmlBeg(os)
+                            << "<p>no CGI-bin defined for this server</p>";
+                        head.htmlEnd(os);
+                    }
+                    else
+                    {
+                        // set CGI environment and serve cgi
+                        ret = this->cgi(sockfd, head);
+                    }
+                }
+                else
+                {
+                    // serve normal document
+                    ret = this->reply(os, head);
+                }
+
+                ::close(sockfd);
+                FD_CLR(sockfd, &monitorFds); // remove from monitored descriptors
+
+                // maxFd may need adjustment
+                if (maxFd == sockfd)
+                {
+                    for (int i = maxFd; i >= listenFd; --i)
+                    {
+                        if (FD_ISSET(i, &monitorFds))
+                        {
+                            maxFd = i;
+                            break;
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+
+    return 0;
+}
+
+
+int markutil::HttpServer::run(RunType how)
+{
+    switch (how)
+    {
+        case FORKING:
+            return run_fork();
+            break;
+        case SELECT:
+            return run_select();
+            break;
     }
 
     return 0;
