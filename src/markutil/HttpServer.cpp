@@ -30,6 +30,7 @@ License
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/select.h>
+#include <sys/wait.h>
 
 #include "fdstream/fdstream.hpp"
 
@@ -537,7 +538,7 @@ int markutil::HttpServer::run_fork()
             {
                 if (this->cgiOkay(os, head))
                 {
-                    // set CGI environment and serve cgi
+                    // serve cgi
                     ret = this->cgi(sockfd, head);
                 }
             }
@@ -547,9 +548,6 @@ int markutil::HttpServer::run_fork()
                 ret = this->reply(os, head);
             }
 
-#ifdef LINUX
-//            sleep(1);      // let socket drain
-#endif
             return ret;
         }
     }
@@ -644,10 +642,8 @@ int markutil::HttpServer::run_select()
                 {
                     if (this->cgiOkay(os, head))
                     {
-                        {
-                            // set CGI environment and serve cgi
-                            ret = this->cgi(sockfd, head);
-                        }
+                        // serve cgi
+                        ret = this->cgi(sockfd, head);
                     }
                 }
                 else
@@ -826,64 +822,76 @@ int markutil::HttpServer::cgi(int fd, HttpHeader& head) const
         return 1;
     }
 
-    const std::string& requestPath = head.request().path();
-
-    // convert SCRIPT_URL -> SCRIPT_NAME
-    // remove leading "/cgi-bin"
-
-    const size_t beg   = cgiPrefix_.size();
-    const size_t slash = requestPath.find('/', beg + 1);
-
-    const std::string cgiProg =
-    (
-        this->cgibin()
-      +
-        (
-            slash == std::string::npos
-          ? requestPath.substr(beg)
-          : requestPath.substr(beg, slash - beg)
-        )
-    );
-
-    struct stat sb;
     int ret = 1;    // assume error
-
     std::string error;
 
-    if (::stat(cgiProg.c_str(), &sb) != 0 || !S_ISREG(sb.st_mode))
+    // this is really just popen(), but done by hand so that the
+    // environment is only affected in the child process and to avoid
+    // any possible shell effects
+    int pipeFds[2];
+    if (::pipe(pipeFds) == 0)
     {
-        error = "does not exist";
-    }
-    else
-    {
-        setCgiEnv(head);
-        FILE *pipe;
-        if ((pipe = ::popen(cgiProg.c_str(), "r")) != NULL)
+        int readerFd = pipeFds[0];
+        int writerFd = pipeFds[1];
+
+        const int pid = ::fork();
+
+        if (pid == 0)
         {
-            int pipeFd = ::fileno(pipe);
-
-            // read and send blockwise - last block may be smaller
-            size_t nread;
-            while ( (nread = ::read(pipeFd, buffer, BufSize)) > 0 )
+            // child - attach stdout to pipe
+            ::close(readerFd);
+            if (writerFd != 1)
             {
-                // okay, we did read something
-                ret = 0;
-
-                size_t noff = 0;
-                while (nread)
-                {
-                    size_t nwrite = ::write(fd, &buffer[noff], nread);
-                    nread -= nwrite;
-                    noff  += nwrite;
-                }
+                ::close(1);
+                ::dup2(writerFd, 1);
+                ::close(writerFd);
             }
 
-            pclose(pipe);
+            const std::string cgiProg = setCgiEnv(head);
+
+            ::execl(cgiProg.c_str(), cgiProg.c_str(), NULL);
+            ::_exit(255);
         }
         else
         {
-            error = "could not open a pipe for reading";
+            ::close(writerFd);
+            if (pid < 0)
+            {
+                // fork failed - no need to wait
+                ::close(readerFd);
+            }
+            else
+            {
+                // parent
+
+                // read and send blockwise - last block may be smaller
+                size_t nread;
+                while ( (nread = ::read(readerFd, buffer, BufSize)) > 0 )
+                {
+                    // okay, we did read something
+                    ret = 0;
+
+                    size_t noff = 0;
+                    while (nread)
+                    {
+                        size_t nwrite = ::write(fd, &buffer[noff], nread);
+                        nread -= nwrite;
+                        noff  += nwrite;
+                    }
+                }
+
+                // this is really just pclose
+                if (::close(readerFd) == 0)
+                {
+                    int waitstat;
+                    ::wait(&waitstat);
+                }
+            }
         }
+    }
+    else
+    {
+        error = "could not open a pipe for reading";
     }
 
     if (ret)
@@ -893,10 +901,8 @@ int markutil::HttpServer::cgi(int fd, HttpHeader& head) const
         head(head._503_SERVICE_UNAVAILABLE);
         head.print(os);
 
-        head.htmlBeg(os) << "<p>CGI-Program <b>";
-        xmlEscapeChars(os, cgiProg) << "</b></p>";
-        os  << "<p>" << (error.empty() ? "returned nothing" : error) << "</p>";
-
+        head.htmlBeg(os)
+            << "<p>" << (error.empty() ? "returned nothing" : error) << "</p>";
         head.htmlEnd(os);
     }
 

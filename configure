@@ -563,7 +563,7 @@ PACKAGE_STRING='LsfUtil beta'
 PACKAGE_BUGREPORT='Mark Olesen'
 PACKAGE_URL=''
 
-ac_unique_file="src/lsf-server.cpp"
+ac_unique_file="src/sample-server.cpp"
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
 LSF_LIBDIR
