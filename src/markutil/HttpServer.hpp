@@ -80,6 +80,9 @@ class HttpServer
         //! set absolute or relative path
         bool setPath(std::string& target, const std::string& path);
 
+        //! dispatch to cgi or normal document serving
+        int dispatch(int sockfd);
+
 protected:
 
     // Protected Member Functions

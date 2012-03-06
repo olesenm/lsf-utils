@@ -129,6 +129,39 @@ bool markutil::HttpServer::setPath
 }
 
 
+int markutil::HttpServer::dispatch(int sockfd)
+{
+    HttpHeader head;
+    head("Server", this->name());
+
+    // fill with request and fill host/peer information
+    head.request().readHeader(sockfd);
+
+    // fill host/peer information
+    head.request().socketInfo().setInfo(sockfd);
+
+
+    boost::fdostream os(sockfd);
+
+    // check for cgi-bin
+    if (this->isCgi(head))
+    {
+        if (this->cgiOkay(os, head))
+        {
+            // serve cgi
+            return this->cgi(sockfd, head);
+        }
+    }
+    else
+    {
+        // serve normal document
+        return this->reply(os, head);
+    }
+
+    return 1;
+}
+
+
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
 bool markutil::HttpServer::notGetOrHead
@@ -519,34 +552,9 @@ int markutil::HttpServer::run_fork()
         {
             // child
             this->close();
-            boost::fdostream os(sockfd);
+            int ret = this->dispatch(sockfd);
 
-            HttpHeader head;
-            head("Server", this->name());
-
-            // fill with request and fill host/peer information
-            head.request().readHeader(sockfd);
-
-            // fill host/peer information
-            head.request().socketInfo().setInfo(sockfd);
-
-            int ret = 1;    // assume failure
-
-            // check for cgi-bin
-            if (this->isCgi(head))
-            {
-                if (this->cgiOkay(os, head))
-                {
-                    // serve cgi
-                    ret = this->cgi(sockfd, head);
-                }
-            }
-            else
-            {
-                // serve normal document
-                ret = this->reply(os, head);
-            }
-
+            ::close(sockfd);
             return ret;
         }
     }
@@ -621,36 +629,7 @@ int markutil::HttpServer::run_select()
             }
             else
             {
-                HttpHeader head;
-                head("Server", this->name());
-
-                // fill with request
-                head.request().readHeader(sockfd);
-
-                // fill host/peer information
-                head.request().socketInfo().setInfo(sockfd);
-
-                int ret = 1;    // assume failure
-
-                boost::fdostream os(sockfd);
-
-                // check for cgi-bin
-                if (this->isCgi(head))
-                {
-                    if (this->cgiOkay(os, head))
-                    {
-                        // serve cgi
-                        ret = this->cgi(sockfd, head);
-                    }
-                }
-                else
-                {
-                    // serve normal document
-                    ret = this->reply(os, head);
-                }
-
-                ::close(sockfd);
-                FD_CLR(sockfd, &monitorFds); // remove from monitored descriptors
+                FD_CLR(sockfd, &monitorFds);    // remove from monitored descriptors
 
                 // maxFd may need adjustment
                 if (maxFd == sockfd)
@@ -665,6 +644,8 @@ int markutil::HttpServer::run_select()
                     }
                 }
 
+                this->dispatch(sockfd);
+                ::close(sockfd);
             }
         }
     }
