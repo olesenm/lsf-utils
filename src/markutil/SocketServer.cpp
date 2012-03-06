@@ -25,7 +25,55 @@ License
 #include <iostream>
 #include <string>
 #include <netdb.h>
-// #include <sys/ioctl.h>
+#include <fcntl.h>
+
+
+// * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * * //
+
+bool markutil::SocketServer::setBlocking(int sockfd)
+{
+    if (sockfd < 0)
+    {
+        return false;
+    }
+
+    int opts = ::fcntl(sockfd, F_GETFL);
+    if (opts < 0)
+    {
+        return false;
+    }
+
+    opts = (opts & ~O_NONBLOCK);
+    if (::fcntl(sockfd, F_SETFL, opts) < 0)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+bool markutil::SocketServer::setNonBlocking(int sockfd)
+{
+    if (sockfd < 0)
+    {
+        return false;
+    }
+
+    int opts = ::fcntl(sockfd, F_GETFL);
+    if (opts < 0)
+    {
+        return false;
+    }
+
+    opts = (opts | O_NONBLOCK);
+    if (::fcntl(sockfd, F_SETFL, opts) < 0)
+    {
+        return false;
+    }
+
+    return true;
+}
 
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
@@ -132,6 +180,12 @@ markutil::SocketServer::~SocketServer()
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+
+int markutil::SocketServer::sock() const
+{
+    return this->fd_;
+}
+
 
 unsigned short markutil::SocketServer::bind(unsigned short port)
 {

@@ -97,6 +97,19 @@ public:
 
     // Member Functions
 
+        //! \brief The socket file descriptor
+        int sock() const;
+
+        //! \brief Set the specified socket to be blocking
+        //  \param sockfd The socket file descriptor
+        //  \return true on success
+        static bool setBlocking(int sockfd);
+
+        //! \brief Set the specified socket to be non-blocking
+        //  \param sockfd The socket file descriptor
+        //  \return true on success
+        static bool setNonBlocking(int sockfd);
+
         //! \brief Set the port for receiving data
         //  Only if not already bound
         //  \param port The port number
