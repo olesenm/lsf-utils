@@ -84,10 +84,16 @@ protected:
 
     // Protected Member Functions
 
+        //- Return true if it appears to be CGI
+        bool isCgi(const HttpHeader& head) const;
+
+        //- Return true if the CGI look okay, or send appropriate response
+        bool cgiOkay(std::ostream& os, HttpHeader& head) const;
+
         //- Set CGI environment variables prior to calling cgi() itself
         //  Returns the SCRIPT_NAME for valid requests and an empty
         //  string if there are problems
-        void setCgiEnv(HttpHeader& head) const;
+        std::string setCgiEnv(HttpHeader& head) const;
 
         //- Check for GET or HEAD, emitting error 405 if it doesn't match
         bool notGetOrHead(std::ostream& os, HttpHeader& head) const;

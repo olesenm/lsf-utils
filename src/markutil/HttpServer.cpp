@@ -152,7 +152,87 @@ const
 }
 
 
-void markutil::HttpServer::setCgiEnv(HttpHeader& head) const
+
+bool markutil::HttpServer::isCgi(const HttpHeader& head) const
+{
+    // check for cgi-bin
+    const std::string& requestPath = head.request().path();
+    const size_t beg = cgiPrefix_.size();
+
+    if
+    (
+        requestPath.size() > beg
+     && requestPath.substr(0, beg) == cgiPrefix_
+     && requestPath[beg] == '/'
+    )
+    {
+        return true;
+    }
+
+    return false;
+}
+
+
+bool markutil::HttpServer::cgiOkay
+(
+    std::ostream& os,
+    HttpHeader& head
+)
+const
+{
+    if (this->cgibin().empty())
+    {
+        head(head._501_NOT_IMPLEMENTED);
+        head.print(os);
+
+        head.htmlBeg(os)
+            << "<p>no CGI-bin defined for this server</p>";
+        head.htmlEnd(os);
+
+        return false;
+    }
+
+    const std::string& requestPath = head.request().path();
+    const size_t beg   = cgiPrefix_.size();
+    const size_t slash = requestPath.find('/', beg + 1);
+
+    // attempt to serve cgi-bin
+    if (requestPath.size() == beg+1)
+    {
+        head(head._403_FORBIDDEN);
+        head.print(os, true);
+        return false;
+    }
+
+    // convert SCRIPT_URL -> SCRIPT_NAME
+    // remove leading "/cgi-bin"
+
+    const std::string cgiProg =
+    (
+        this->cgibin()
+      +
+        (
+            slash == std::string::npos
+          ? requestPath.substr(beg)
+          : requestPath.substr(beg, slash - beg)
+        )
+    );
+
+    struct stat sb;
+    if (::stat(cgiProg.c_str(), &sb) != 0 || !S_ISREG(sb.st_mode))
+    {
+        head(head._503_SERVICE_UNAVAILABLE);
+        head.print(os);
+        head.htmlBeg(os) << "<p>CGI does not exist or is not executable</p>";
+        head.htmlEnd(os);
+        return false;
+    }
+
+    return true;
+}
+
+
+std::string markutil::HttpServer::setCgiEnv(HttpHeader& head) const
 {
     const HttpRequest& req = head.request();
     std::string script_url = req.path();
@@ -279,6 +359,8 @@ void markutil::HttpServer::setCgiEnv(HttpHeader& head) const
     //
     setenv("PATH", "/usr/bin:/bin", 1);
     unsetenv("LD_LIBRARY_PATH");
+
+    return script_filename;
 }
 
 
@@ -451,33 +533,9 @@ int markutil::HttpServer::run_fork()
             int ret = 1;    // assume failure
 
             // check for cgi-bin
-            const std::string& url = head.request().path();
-            const std::string& prefix = this->cgiPrefix();
-            const size_t len = prefix.size();
-
-            if
-            (
-                url.size() > len
-             && url.substr(0, len) == prefix
-             && url[len] == '/'
-            )
+            if (this->isCgi(head))
             {
-                // serve cgi-bin
-                if (url.size() == len+1)
-                {
-                    head(head._403_FORBIDDEN);
-                    head.print(os, true);
-                }
-                else if (this->cgibin().empty())
-                {
-                    head(head._501_NOT_IMPLEMENTED);
-                    head.print(os);
-
-                    head.htmlBeg(os)
-                        << "<p>no CGI-bin defined for this server</p>";
-                    head.htmlEnd(os);
-                }
-                else
+                if (this->cgiOkay(os, head))
                 {
                     // set CGI environment and serve cgi
                     ret = this->cgi(sockfd, head);
@@ -582,36 +640,14 @@ int markutil::HttpServer::run_select()
                 int ret = 1;    // assume failure
 
                 // check for cgi-bin
-                const std::string& url = head.request().path();
-                const std::string& prefix = this->cgiPrefix();
-                const size_t len = prefix.size();
-
-                if
-                (
-                    url.size() > len
-                 && url.substr(0, len) == prefix
-                 && url[len] == '/'
-                )
+                if (this->isCgi(head))
                 {
-                    // serve cgi-bin
-                    if (url.size() == len+1)
+                    if (this->cgiOkay(os, head))
                     {
-                        head(head._403_FORBIDDEN);
-                        head.print(os, true);
-                    }
-                    else if (this->cgibin().empty())
-                    {
-                        head(head._501_NOT_IMPLEMENTED);
-                        head.print(os);
-
-                        head.htmlBeg(os)
-                            << "<p>no CGI-bin defined for this server</p>";
-                        head.htmlEnd(os);
-                    }
-                    else
-                    {
-                        // set CGI environment and serve cgi
-                        ret = this->cgi(sockfd, head);
+                        {
+                            // set CGI environment and serve cgi
+                            ret = this->cgi(sockfd, head);
+                        }
                     }
                 }
                 else
