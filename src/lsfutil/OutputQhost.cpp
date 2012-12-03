@@ -21,6 +21,7 @@ License
 
 #include "lsfutil/OutputQhost.hpp"
 #include "lsfutil/XmlUtils.hpp"
+#include <cstdio>
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
